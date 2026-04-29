@@ -1,0 +1,78 @@
+spring:
+  application:
+    name: CoHab-chat
+
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/cohab_chat
+
+  security:
+    jwt:
+      public-key: classpath:public.pem
+
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+
+  webflux:
+    base-path: /api/v1
+    format:
+      date: iso
+      date-time: iso
+      time: iso
+
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_trace_param
+    include-exception: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+    enabled: true
+  show-actuator: true
+  writer-with-default-pretty-printer: true
+
+logging:
+  level:
+    root: INFO
+    by.magofrays: DEBUG
+    org.springframework.data.mongodb: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+
+websocket:
+  relay:
+    host: localhost
+    port: 61613
+    enabled: false
+
+mapstruct:
+  default-component-model: spring
+  unmapped-target-policy: ignore
