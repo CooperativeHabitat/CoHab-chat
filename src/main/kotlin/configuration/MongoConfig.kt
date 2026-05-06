@@ -5,5 +5,5 @@ import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRep
 
 @Configuration
 @EnableReactiveMongoRepositories(basePackages = ["by.magofrays.repository"])
-class MongoConfig  {
+class MongoConfig {
 }
