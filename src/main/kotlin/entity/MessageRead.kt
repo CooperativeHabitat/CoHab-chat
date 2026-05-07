@@ -5,13 +5,11 @@ import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
 import java.util.UUID
 
-@Document(collection = "reactions")
-class Reaction(
+@Document(collection = "message_reads")
+class MessageRead (
     @Id
     val id: UUID,
-    val memberId: UUID,
-    val familyId: UUID,
     val messageId: UUID,
-    val reaction: String,
-    val timestamp: Instant
-)
+    val memberId: UUID,
+    val readAt: Instant = Instant.now()
+    )
