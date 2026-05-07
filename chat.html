@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>RSocket Chat Client</title>
+    <script src="https://cdn.jsdelivr.net/npm/@rsocket/rsocket-core@0.0.28/dist/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@rsocket/rsocket-websocket-client@0.0.28/dist/index.min.js"></script>
+</head>
+<body>
+<h3>RSocket Chat Client</h3>
+
+<div>
+    <label>Server URL:</label>
+    <input type="text" id="wsUrl" value="ws://localhost:7000/rsocket" style="width: 300px;">
+    <button id="connectBtn">Connect</button>
+    <button id="disconnectBtn" disabled>Disconnect</button>
+</div>
+
+<div>
+    <label>Family ID (UUID):</label>
+    <input type="text" id="familyId" value="550e8400-e29b-41d4-a716-446655440000" style="width: 300px;">
+</div>
+
+<div>
+    <label>Member ID (UUID):</label>
+    <input type="text" id="memberId" value="123e4567-e89b-12d3-a456-426614174000" style="width: 300px;">
+</div>
+
+<hr>
+
+<div id="messages" style="border:1px solid #ccc; height:300px; overflow:auto; padding:10px; margin:10px 0;">
+    <em>Not connected</em>
+</div>
+
+<div>
+    <input type="text" id="messageInput" placeholder="Type message..." style="width: 400px;" disabled>
+    <button id="sendBtn" disabled>Send</button>
+</div>
+
+<div>
+    <strong>Status:</strong> <span id="status">Disconnected</span>
+</div>
+
+<script>
+    let rsocket = null;
+    let isConnected = false;
+
+    const connectBtn = document.getElementById('connectBtn');
+    const disconnectBtn = document.getElementById('disconnectBtn');
+    const sendBtn = document.getElementById('sendBtn');
+    const messageInput = document.getElementById('messageInput');
+    const messagesDiv = document.getElementById('messages');
+    const statusSpan = document.getElementById('status');
+    const wsUrlInput = document.getElementById('wsUrl');
+    const familyIdInput = document.getElementById('familyId');
+    const memberIdInput = document.getElementById('memberId');
+
+    function addMessage(text, type) {
+        const msgDiv = document.createElement('div');
+        msgDiv.style.margin = '5px 0';
+        msgDiv.style.padding = '5px';
+        msgDiv.style.borderRadius = '5px';
+        msgDiv.style.backgroundColor = type === 'sent' ? '#e3f2fd' : '#f5f5f5';
+        msgDiv.style.border = '1px solid #ddd';
+        msgDiv.innerHTML = `<strong>${type === 'sent' ? '➤ Sent' : '◀ Received'}:</strong> ${text}`;
+        messagesDiv.appendChild(msgDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function setStatus(connected) {
+        isConnected = connected;
+        const statusText = connected ? 'Connected' : 'Disconnected';
+        statusSpan.textContent = statusText;
+        statusSpan.style.color = connected ? 'green' : 'red';
+
+        connectBtn.disabled = connected;
+        disconnectBtn.disabled = !connected;
+        sendBtn.disabled = !connected;
+        messageInput.disabled = !connected;
+        wsUrlInput.disabled = connected;
+        familyIdInput.disabled = connected;
+        memberIdInput.disabled = connected;
+    }
+
+    function sendMessage() {
+        const text = messageInput.value.trim();
+        if (!text || !rsocket || !isConnected) return;
+
+        const familyId = familyIdInput.value;
+        const memberId = memberIdInput.value;
+
+        const payload = {
+            content: text,
+            replyToId: null,
+            memberId: memberId
+        };
+
+        addMessage(JSON.stringify(payload), 'sent');
+
+        // Отправка через RSocket
+        rsocket.fireAndForget({
+            data: JSON.stringify(payload),
+            metadata: `route=api.family.chat.${familyId}`
+        });
+
+        messageInput.value = '';
+    }
+
+    async function connect() {
+        const wsUrl = wsUrlInput.value;
+        const familyId = familyIdInput.value;
+
+        addMessage(`Connecting to ${wsUrl}...`, 'received');
+
+        try {
+            const { RSocketClient, JsonSerializer, IdentitySerializer } = RsocketCore;
+            const { RSocketWebSocketClient } = RsocketWebSocketClient;
+
+            const client = new RSocketClient({
+                setup: {
+                    keepAlive: 30000,
+                    lifetime: 180000,
+                    dataMimeType: 'application/json',
+                    metadataMimeType: 'message/x.rsocket.routing.v0',
+                },
+                transport: new RSocketWebSocketClient({
+                    url: wsUrl,
+                    wsCreator: url => new WebSocket(url),
+                }),
+                serializer: new JsonSerializer(),
+            });
+
+            rsocket = await client.connect();
+            setStatus(true);
+            addMessage('Connected! Subscribing to channel...', 'received');
+
+            // Подписываемся на канал
+            const channel = rsocket.requestChannel({
+                data: null,
+                metadata: `route=api.family.chat.${familyId}`
+            });
+
+            // Получаем сообщения от сервера
+            channel.subscribe({
+                onNext: (payload) => {
+                    try {
+                        const data = JSON.parse(payload.data);
+                        addMessage(`Message: ${JSON.stringify(data)}`, 'received');
+                    } catch(e) {
+                        addMessage(`Raw: ${payload.data}`, 'received');
+                    }
+                },
+                onError: (error) => {
+                    addMessage(`Error: ${error.message}`, 'received');
+                    setStatus(false);
+                    rsocket = null;
+                },
+                onComplete: () => {
+                    addMessage('Channel completed', 'received');
+                    setStatus(false);
+                    rsocket = null;
+                },
+                onSubscribe: (subscription) => {
+                    subscription.request(2147483647); // Request unlimited
+                }
+            });
+
+            // Сохраняем channel для отправки
+            rsocket.requestChannel = () => channel;
+
+        } catch (error) {
+            addMessage(`Connection error: ${error.message}`, 'received');
+            console.error(error);
+            setStatus(false);
+            rsocket = null;
+        }
+    }
+
+    function disconnect() {
+        if (rsocket) {
+            rsocket.close();
+            rsocket = null;
+        }
+        setStatus(false);
+        addMessage('Disconnected', 'received');
+    }
+
+    connectBtn.onclick = connect;
+    disconnectBtn.onclick = disconnect;
+    sendBtn.onclick = sendMessage;
+    messageInput.onkeypress = (e) => {
+        if (e.key === 'Enter') sendMessage();
+    };
+</script>
+</body>
+</html>

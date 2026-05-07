@@ -5,6 +5,14 @@ spring:
   data:
     mongodb:
       uri: mongodb://localhost:27017/cohab_chat
+      auto-index-creation: true
+
+
+  rsocket:
+    server:
+      port: 0
+      mapping-path: "/rsocket"
+      transport: "websocket"
 
   security:
     jwt:
@@ -13,11 +21,7 @@ spring:
 
 server:
   port: 8080
-  error:
-    include-message: always
-    include-binding-errors: always
-    include-stacktrace: on_trace_param
-    include-exception: false
+
 
 management:
   endpoints:
@@ -29,10 +33,6 @@ management:
     health:
       show-details: always
       show-components: always
-  metrics:
-    export:
-      prometheus:
-        enabled: true
 
 springdoc:
   api-docs:
