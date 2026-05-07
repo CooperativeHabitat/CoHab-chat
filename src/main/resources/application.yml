@@ -3,14 +3,18 @@ spring:
     name: CoHab-chat
 
   data:
+    redis:
+      host: localhost
+      port: 6379
     mongodb:
       uri: mongodb://localhost:27017/cohab_chat
       auto-index-creation: true
+      uuid-representation: STANDARD
 
 
   rsocket:
     server:
-      port: 0
+      port: 7000
       mapping-path: "/rsocket"
       transport: "websocket"
 

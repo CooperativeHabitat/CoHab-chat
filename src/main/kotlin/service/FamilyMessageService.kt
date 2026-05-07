@@ -8,7 +8,9 @@ import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.data.redis.listener.ChannelTopic
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
+import reactor.core.scheduler.Schedulers
 import java.util.*
+
 @Service
 class FamilyMessageService(
     val messageRepository: MessageRepository,
@@ -20,30 +22,45 @@ class FamilyMessageService(
         val subscription = redisTemplate
             .listenTo(ChannelTopic.of(channel))
             .map { it.message }
-            .share()
+            .replay(1)
+            .autoConnect(0)
+        println("subscribed on redis")
 
-        messages.doOnNext { message ->
-            val messageEntity = Message(
-                content = message.content,
-                replyToId = message.replyToId,
-                familyId = familyId,
-                memberId = message.memberId,
-            )
-            messageRepository.save(messageEntity)
-                .map { entity ->
-                    val messageDto = MessageDto(
-                        content = entity.content,
-                        replyToId = entity.replyToId,
-                        familyId = entity.familyId,
-                        memberId = entity.memberId,
-                        sentAt = messageEntity.sentAt,
-                        updatedAt = messageEntity.updatedAt
-                    )
-                    redisTemplate.convertAndSend(channel, messageDto)
-                        .thenReturn(messageDto)
-                }.subscribe()
-        }.subscribe()
+        messages
+            .flatMap { message ->
 
+                val entity = Message(
+                    content = message.content,
+                    replyToId = message.replyToId.toString(),
+                    familyId = familyId.toString(),
+                    memberId = message.memberId.toString(),
+                )
+
+                messageRepository.save(entity)
+                    .map { saved ->
+                        MessageDto(
+                            content = saved.content,
+                            replyToId = UUID.fromString(saved.replyToId),
+                            familyId = UUID.fromString(saved.familyId),
+                            memberId = UUID.fromString(saved.memberId),
+                            sentAt = saved.sentAt,
+                            updatedAt = saved.updatedAt
+                        )
+                    }
+                    .flatMap { dto ->
+                        redisTemplate.convertAndSend(channel, dto)
+                            .doOnSuccess {
+                                println("Sent to redis")
+                            }
+                            .thenReturn(dto)
+                    }
+            }
+            .doOnError { error ->
+                println("ERROR: ${error.message}")
+            }
+            .subscribe()
         return subscription
     }
+
+
 }

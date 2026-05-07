@@ -12,10 +12,10 @@ class Message(
     @Id
     val id: String? = null,
     val content: String,
-    val replyToId: UUID,
+    val replyToId: String,
     @Indexed
-    val familyId: UUID,
-    val memberId: UUID,
+    val familyId: String,
+    val memberId: String,
     val multimediaUrl: Array<String>? = null,
     val sentAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now()
