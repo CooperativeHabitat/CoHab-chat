@@ -4,11 +4,10 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
-import java.util.UUID
 
 
 @Document(collection = "messages")
-class Message(
+data class Message(
     @Id
     val id: String? = null,
     val content: String,

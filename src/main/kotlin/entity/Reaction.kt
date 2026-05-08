@@ -6,7 +6,7 @@ import java.time.Instant
 import java.util.UUID
 
 @Document(collection = "reactions")
-class Reaction(
+data class Reaction(
     @Id
     val id: UUID,
     val memberId: UUID,

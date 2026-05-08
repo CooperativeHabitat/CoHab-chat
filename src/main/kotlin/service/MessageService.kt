@@ -4,18 +4,20 @@ import by.magofrays.dto.ClientMessage
 import by.magofrays.dto.MessageDto
 import by.magofrays.entity.Message
 import by.magofrays.repository.MessageRepository
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.data.redis.listener.ChannelTopic
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
-import reactor.core.scheduler.Schedulers
 import java.util.*
 
 @Service
-class FamilyMessageService(
+class MessageService(
     val messageRepository: MessageRepository,
-    val redisTemplate: ReactiveRedisTemplate<String, MessageDto>
+    val redisTemplate: ReactiveRedisTemplate<String, MessageDto>,
 ) {
+    private val log: Logger = LoggerFactory.getLogger(this.javaClass)
 
     fun connect(familyId: UUID, messages: Flux<ClientMessage>): Flux<MessageDto> {
         val channel = "family:chat:$familyId"
@@ -24,7 +26,7 @@ class FamilyMessageService(
             .map { it.message }
             .replay(1)
             .autoConnect(0)
-        println("subscribed on redis")
+        log.info("subscribed on redis")
 
         messages
             .flatMap { message ->
@@ -50,7 +52,7 @@ class FamilyMessageService(
                     .flatMap { dto ->
                         redisTemplate.convertAndSend(channel, dto)
                             .doOnSuccess {
-                                println("Sent to redis")
+                                log.info("Sent to redis")
                             }
                             .thenReturn(dto)
                     }

@@ -1,3 +1,5 @@
+package controller.test
+
 import by.magofrays.dto.ClientMessage
 import by.magofrays.dto.MessageDto
 import org.springframework.http.MediaType

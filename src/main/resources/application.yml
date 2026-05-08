@@ -9,7 +9,6 @@ spring:
     mongodb:
       uri: mongodb://localhost:27017/cohab_chat
       auto-index-creation: true
-      uuid-representation: STANDARD
 
 
   rsocket:
@@ -26,6 +25,9 @@ spring:
 server:
   port: 8080
 
+kafka:
+  topics:
+    notification: "notification"
 
 management:
   endpoints:
@@ -58,9 +60,3 @@ logging:
     org.springframework.data.mongodb: DEBUG
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
-
-#websocket:
-#  relay:
-#    host: localhost
-#    port: 61613
-#    enabled: false
