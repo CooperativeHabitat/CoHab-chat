@@ -1,4 +1,4 @@
-package by.magofrays.config
+package by.magofrays.configuration
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

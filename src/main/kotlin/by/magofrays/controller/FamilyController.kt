@@ -1,6 +1,6 @@
 package by.magofrays.controller
 
-import by.magofrays.dto.Notification
+import by.magofrays.dto.NotificationDto
 import by.magofrays.service.NotificationService
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
@@ -16,7 +16,7 @@ class FamilyController(
     private val notificationService: NotificationService
 ) {
     @GetMapping(path = ["notifications/{memberId}"], produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
-    fun connectNotification(@PathVariable memberId: UUID) : Flux<Notification> { // todo principal
+    fun connectNotification(@PathVariable memberId: UUID) : Flux<NotificationDto> { // todo principal
         return notificationService.connectNotification(memberId);
     }
 }
