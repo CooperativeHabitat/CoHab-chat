@@ -1,24 +1,22 @@
 package by.magofrays.controller
 
-import by.magofrays.dto.ClientMessage
-import by.magofrays.dto.MessageDto
-import by.magofrays.service.FamilyMessageService
-import org.springframework.messaging.handler.annotation.DestinationVariable
-import org.springframework.messaging.handler.annotation.MessageMapping
-import org.springframework.messaging.handler.annotation.Payload
-import org.springframework.stereotype.Controller
+import by.magofrays.dto.Notification
+import by.magofrays.service.NotificationService
+import org.springframework.http.MediaType
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
 import java.util.*
 
-@Controller
-@MessageMapping("api.family")
+@RestController
+@RequestMapping("family")
 class FamilyController(
-    val familyMessageService: FamilyMessageService,
+    private val notificationService: NotificationService
 ) {
-
-    @MessageMapping("chat.{familyId}")
-    fun connect(@DestinationVariable familyId: UUID,
-                @Payload clientMessages: Flux<ClientMessage>) : Flux<MessageDto> {
-        return familyMessageService.connect(familyId, clientMessages)
+    @GetMapping(path = ["notifications/{memberId}"], produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
+    fun connectNotification(@PathVariable memberId: UUID) : Flux<Notification> { // todo principal
+        return notificationService.connectNotification(memberId);
     }
 }

@@ -6,7 +6,7 @@ import java.time.Instant
 import java.util.UUID
 
 @Document(collection = "message_reads")
-class MessageRead (
+data class MessageRead (
     @Id
     val id: UUID,
     val messageId: UUID,
