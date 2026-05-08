@@ -25,8 +25,9 @@ class NotificationService
             subscribersCount = AtomicInteger(0)
         ) }
         val memberSink = memberMap[memberId]
-        memberSink?.subscribersCount?.incrementAndGet()
+
         return memberSink!!.sink.asFlux()
+            .doOnSubscribe { memberSink.subscribersCount.incrementAndGet() }
             .doOnCancel {
                 val remaining = memberSink.subscribersCount.decrementAndGet()
                 if(remaining < 1){
