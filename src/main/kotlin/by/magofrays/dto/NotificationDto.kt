@@ -5,7 +5,7 @@ import java.util.UUID
 
 data class NotificationDto (
     val from: String,
-    val recipient: UUID,
+    val recipient: String,
     val message: String,
     val createdAt: Instant
 )

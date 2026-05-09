@@ -4,7 +4,6 @@ import by.magofrays.dto.ClientMessage
 import by.magofrays.dto.MessageDto
 import by.magofrays.entity.Message
 import by.magofrays.repository.MessageRepository
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.data.redis.listener.ChannelTopic
@@ -17,7 +16,7 @@ class MessageService(
     val messageRepository: MessageRepository,
     val redisTemplate: ReactiveRedisTemplate<String, MessageDto>,
 ) {
-    private val log: Logger = LoggerFactory.getLogger(this.javaClass)
+    private val log = LoggerFactory.getLogger(MessageService::class.java)
 
     fun connect(familyId: UUID, messages: Flux<ClientMessage>): Flux<MessageDto> {
         val channel = "family:chat:$familyId"
@@ -26,11 +25,10 @@ class MessageService(
             .map { it.message }
             .replay(1)
             .autoConnect(0)
-        log.info("subscribed on redis")
+        log.info("Created $channel")
 
         messages
             .flatMap { message ->
-
                 val entity = Message(
                     content = message.content,
                     replyToId = message.replyToId.toString(),
@@ -48,17 +46,17 @@ class MessageService(
                             sentAt = saved.sentAt,
                             updatedAt = saved.updatedAt
                         )
-                    }
+                    }.doOnError { error -> log.error("Error occurred while saving message: ${error.message}") }
                     .flatMap { dto ->
                         redisTemplate.convertAndSend(channel, dto)
                             .doOnSuccess {
-                                log.info("Sent to redis")
+                                log.info("Sent message to redis: $dto")
                             }
                             .thenReturn(dto)
                     }
             }
             .doOnError { error ->
-                println("ERROR: ${error.message}")
+                println("Error while handling messages from client: ${error.message}")
             }
             .subscribe()
         return subscription

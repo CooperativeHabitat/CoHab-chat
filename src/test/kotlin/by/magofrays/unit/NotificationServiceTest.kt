@@ -66,6 +66,7 @@ class NotificationServiceTest {
 
         val flux1 = notificationService.connectNotification(memberId)
         val flux2 = notificationService.connectNotification(memberId)
+        val flux3 = notificationService.connectNotification(memberId)
 
         val verifier1 = StepVerifier.create(flux1)
             .then {
@@ -81,9 +82,19 @@ class NotificationServiceTest {
             .expectNext(notification)
             .thenCancel()
 
+        val verifier3 = StepVerifier.create(flux3)
+            .then {
+                notificationService.sendNotification(memberId, notification)
+            }
+            .expectNext(notification)
+            .thenCancel()
+
         verifier1.verify(Duration.ofSeconds(3))
         verifier2.verify(Duration.ofSeconds(3))
+        verifier3.verify(Duration.ofSeconds(3))
+
     }
+
 
     @Test
     fun `should cleanup sink after all subscribers disconnected`() {
