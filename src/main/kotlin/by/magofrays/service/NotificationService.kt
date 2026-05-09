@@ -11,6 +11,8 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.publisher.Sinks
 import tools.jackson.databind.ObjectMapper
+import java.time.Instant
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -25,10 +27,10 @@ class NotificationService(
         val subscribersCount: AtomicInteger
     )
 
-    private val memberMap = ConcurrentHashMap<String, MemberSink>()
+    private val memberMap = ConcurrentHashMap<UUID, MemberSink>()
     private val log = LoggerFactory.getLogger(NotificationService::class.java)
 
-    fun connectNotification(memberId: String) : Flux<NotificationDto> {
+    fun connectNotification(memberId: UUID) : Flux<NotificationDto> {
         log.info("Connecting client to $memberId sink")
         memberMap.computeIfAbsent(memberId) { MemberSink(
             sink = Sinks.many().multicast().onBackpressureBuffer(1, false),
@@ -52,7 +54,7 @@ class NotificationService(
             }
     }
 
-    fun sendNotification(memberId: String, notification: NotificationDto) {
+    fun sendNotification(memberId: UUID, notification: NotificationDto) {
         if(!memberMap.containsKey(memberId)){
             return
         }
@@ -60,11 +62,11 @@ class NotificationService(
         memberMap[memberId]?.sink?.tryEmitNext(notification)
     }
 
-    fun findAllNotificationByMember(memberId: String, pageable: Pageable) : Mono<Page<NotificationDto>> {
-        return notificationRepository.findByRecipient(memberId, pageable)
+    fun findAllNotificationByMember(memberId: UUID, startDate: Instant?, endDate: Instant?, pageable: Pageable) : Mono<Page<NotificationDto>> {
+        return notificationRepository.findByRecipientAndCreatedAtBetween(memberId, startDate, endDate, pageable)
             .map { notification -> objectMapper.convertValue(notification, NotificationDto::class.java) }
             .collectList()
-            .zipWith(notificationRepository.count())
+            .zipWith(notificationRepository.countByRecipientAndCreatedAtBetween(memberId, startDate, endDate))
             .map{p -> PageImpl(p.getT1(), pageable, p.getT2()) }
     }
 }

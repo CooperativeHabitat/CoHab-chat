@@ -15,7 +15,23 @@ data class Message(
     @Indexed
     val familyId: String,
     val memberId: String,
-    val multimediaUrl: Array<String>? = null,
+    val multimediaUrl: List<String>? = null,
+    val reactions: List<Reaction>? = null,
+    val reads: List<MessageRead>? = null,
     val sentAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now()
+)
+
+data class MessageRead (
+    val messageId: String,
+    val memberId: String,
+    val readAt: Instant = Instant.now()
+)
+
+data class Reaction(
+    val memberId: String,
+    val familyId: String,
+    val messageId: String,
+    val reaction: String,
+    val timestamp: Instant = Instant.now()
 )

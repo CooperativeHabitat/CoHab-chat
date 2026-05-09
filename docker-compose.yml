@@ -4,7 +4,7 @@ services:
     container_name: cohab-mongodb
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     volumes:
       - mongodb_data:/data/db
 
@@ -13,10 +13,25 @@ services:
     container_name: cohab-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.1.2.3
+    environment:
+      CLICKHOUSE_USER: events
+      CLICKHOUSE_PASSWORD: events
+      CLICKHOUSE_DB: events
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+
+    ports:
+      - "127.0.0.1:8123:8123"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+
 
 volumes:
   mongodb_data:
   redis_data:
+  clickhouse_data:

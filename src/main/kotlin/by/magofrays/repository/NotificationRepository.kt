@@ -2,10 +2,26 @@ package by.magofrays.repository
 
 import by.magofrays.entity.Notification
 import org.springframework.data.domain.Pageable
-import org.springframework.data.mongodb.repository.ReactiveMongoRepository
+import org.springframework.data.r2dbc.repository.R2dbcRepository
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import java.time.Instant
+import java.util.*
 
 
-interface NotificationRepository : ReactiveMongoRepository<Notification, String> {
-    fun findByRecipient(recipient: String, pageable: Pageable): Flux<Notification>
+interface NotificationRepository : R2dbcRepository<Notification, UUID> {
+
+    fun findByRecipientAndCreatedAtBetween(
+        recipient: UUID,
+        startDate: Instant?,
+        endDate: Instant?,
+        pageable: Pageable
+    ): Flux<Notification>
+
+    fun countByRecipientAndCreatedAtBetween(
+        recipient: UUID,
+        startDate: Instant?,
+        endDate: Instant?
+    ): Mono<Long>
+
 }

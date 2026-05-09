@@ -1,17 +1,16 @@
 package by.magofrays.entity
 
 import org.springframework.data.annotation.Id
-import org.springframework.data.mongodb.core.index.Indexed
-import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.relational.core.mapping.Table
 import java.time.Instant
+import java.util.UUID
 
-@Document(collection = "notifications")
+@Table("notifications")
 data class Notification (
     @Id
-    val id: String? = null,
+    val id: UUID = UUID.randomUUID(),
     val from: String,
-    @Indexed
-    val recipient: String,
+    val recipient: UUID,
     val message: String,
     val createdAt: Instant
 )

@@ -27,7 +27,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-rsocket")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
     implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
+    implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
+    implementation("com.clickhouse:clickhouse-r2dbc:0.9.8")
+    implementation("com.clickhouse:clickhouse-jdbc:0.9.8")
     implementation("org.springframework.kafka:spring-kafka")
+    implementation("org.liquibase:liquibase-core:5.0.2")
 //    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -35,7 +39,6 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
