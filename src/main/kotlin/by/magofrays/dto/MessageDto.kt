@@ -7,12 +7,12 @@ import java.util.UUID
 
 data class MessageDto(
     val content: String,
-    val replyToId: UUID,
-    val familyId: UUID,
-    val memberId: UUID,
-    val multimediaUrl: List<String>? = null,
-    val reactions: List<Reaction>? = null,
-    val reads: List<MessageRead>? = null,
+    val replyToId: String? = null,
+    val familyId: String,
+    val memberId: String,
+    val multimediaUrl: List<String> = emptyList(),
+    val reactions: List<Reaction> = emptyList(),
+    val reads: List<MessageRead> = emptyList(),
     val sentAt: Instant,
     val updatedAt: Instant,
 )

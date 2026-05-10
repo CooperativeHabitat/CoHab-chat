@@ -2,7 +2,6 @@ package by.magofrays.service
 
 import by.magofrays.dto.ClientMessage
 import by.magofrays.dto.MessageDto
-import by.magofrays.dto.NotificationDto
 import by.magofrays.entity.Message
 import by.magofrays.repository.MessageRepository
 import org.slf4j.LoggerFactory
@@ -26,7 +25,7 @@ class MessageService(
 ) {
     private val log = LoggerFactory.getLogger(MessageService::class.java)
 
-    fun connect(familyId: UUID, messages: Flux<ClientMessage>): Flux<MessageDto> {
+    fun connectMessages(familyId: UUID, clientMessages: Flux<ClientMessage>): Flux<MessageDto> {
         val channel = "family:chat:$familyId"
         val subscription = redisTemplate
             .listenTo(ChannelTopic.of(channel))
@@ -34,8 +33,7 @@ class MessageService(
             .replay(1)
             .autoConnect(0)
         log.info("Created $channel")
-
-        messages
+        val clientMessagesSubscription = clientMessages
             .flatMap { message ->
                 val entity = Message(
                     content = message.content,
@@ -48,9 +46,9 @@ class MessageService(
                     .map { saved ->
                         MessageDto(
                             content = saved.content,
-                            replyToId = UUID.fromString(saved.replyToId),
-                            familyId = UUID.fromString(saved.familyId),
-                            memberId = UUID.fromString(saved.memberId),
+                            replyToId = saved.replyToId,
+                            familyId = saved.familyId,
+                            memberId = saved.memberId,
                             sentAt = saved.sentAt,
                             updatedAt = saved.updatedAt
                         )
@@ -67,15 +65,21 @@ class MessageService(
                 println("Error while handling messages from client: ${error.message}")
             }
             .subscribe()
-        return subscription
+        return subscription.doOnCancel {
+            clientMessagesSubscription.dispose()
+            log.info("Canceled subscription to client")
+        }
     }
 
 
     fun findAllMessagesByFamily(familyId: String, startDate: Instant?, endDate: Instant?, pageable: Pageable) : Mono<Page<MessageDto>> {
         return messageRepository.findByFamilyIdAndSentAtBetween(familyId, startDate, endDate, pageable)
-            .map { notification -> objectMapper.convertValue(notification, MessageDto::class.java) }
+            .map { message -> objectMapper.convertValue(message, MessageDto::class.java) }
             .collectList()
             .zipWith(messageRepository.countByFamilyIdAndSentAtBetween(familyId, startDate, endDate))
             .map{p -> PageImpl(p.getT1(), pageable, p.getT2()) }
     }
+
+
+
 }

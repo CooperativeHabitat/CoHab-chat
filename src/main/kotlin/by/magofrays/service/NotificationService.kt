@@ -30,12 +30,15 @@ class NotificationService(
     private val memberMap = ConcurrentHashMap<UUID, MemberSink>()
     private val log = LoggerFactory.getLogger(NotificationService::class.java)
 
-    fun connectNotification(memberId: UUID) : Flux<NotificationDto> {
-        log.info("Connecting client to $memberId sink")
-        memberMap.computeIfAbsent(memberId) { MemberSink(
+    fun connectNotifications(memberId: UUID) : Flux<NotificationDto> {
+
+        memberMap.computeIfAbsent(memberId) {
+            log.info("Creating sink for $memberId")
+            MemberSink(
             sink = Sinks.many().multicast().onBackpressureBuffer(1, false),
             subscribersCount = AtomicInteger(0)
         ) }
+        log.info("Connecting client to $memberId sink")
         val memberSink = memberMap[memberId]
         memberSink!!.subscribersCount.incrementAndGet()
         return memberSink.sink.asFlux()

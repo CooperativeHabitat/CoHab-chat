@@ -21,9 +21,9 @@ class FamilyRSocketController(
 ) {
 
     @MessageMapping("chat.{familyId}")
-    fun connect(@DestinationVariable familyId: UUID,
+    fun connectMessages(@DestinationVariable familyId: UUID,
                 @Payload clientMessages: Flux<ClientMessage>) : Flux<MessageDto> {
-        return familyMessageService.connect(familyId, clientMessages)
+        return familyMessageService.connectMessages(familyId, clientMessages)
     }
 
 

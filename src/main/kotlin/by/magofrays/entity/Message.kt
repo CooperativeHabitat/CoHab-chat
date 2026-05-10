@@ -9,17 +9,17 @@ import java.time.Instant
 @Document(collection = "messages")
 data class Message(
     @Id
-    val id: String? = null,
+    var id: String? = null,
     val content: String,
-    val replyToId: String,
+    val replyToId: String? = null,
     @Indexed
     val familyId: String,
     val memberId: String,
-    val multimediaUrl: List<String>? = null,
-    val reactions: List<Reaction>? = null,
-    val reads: List<MessageRead>? = null,
+    val multimediaUrl: List<String> = emptyList(),
+    val reactions: List<Reaction> = emptyList(),
+    val reads: List<MessageRead> = emptyList(),
     val sentAt: Instant = Instant.now(),
-    val updatedAt: Instant = Instant.now()
+    var updatedAt: Instant = Instant.now()
 )
 
 data class MessageRead (

@@ -20,7 +20,7 @@ class FamilyController(
 ) {
     @GetMapping(path = ["notifications/connect/{memberId}"], produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun connectNotification(@PathVariable memberId: UUID) : Flux<NotificationDto> { // todo principal
-        return notificationService.connectNotification(memberId)
+        return notificationService.connectNotifications(memberId)
     }
 
     @GetMapping("/notifications/{memberId}")
