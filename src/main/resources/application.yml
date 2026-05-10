@@ -2,14 +2,28 @@ spring:
   application:
     name: CoHab-chat
 
+  threads:
+    virtual:
+      enabled: true
+
+  mongodb:
+    uri: mongodb://localhost:27017/cohab_chat
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+  r2dbc:
+    username: events
+    password: events
+    url: r2dbc:clickhouse://localhost:8123/events
+
+
   data:
     redis:
       host: localhost
       port: 6379
     mongodb:
-      uri: mongodb://localhost:27017/cohab_chat
       auto-index-creation: true
-
 
   rsocket:
     server:
@@ -20,6 +34,13 @@ spring:
   security:
     jwt:
       public-key: classpath:certs/public.pem
+
+  liquibase:
+    url: jdbc:clickhouse://localhost:8123/events
+    user: events
+    password: events
+    change-log: classpath:liquibase/changelog-master.yml
+    enabled: true
 
 
 server:
