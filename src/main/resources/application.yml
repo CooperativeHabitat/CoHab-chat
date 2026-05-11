@@ -1,4 +1,8 @@
 spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.data.r2dbc.autoconfigure.DataR2dbcAutoConfiguration
+
   application:
     name: CoHab-chat
 
@@ -16,6 +20,8 @@ spring:
     username: events
     password: events
     url: r2dbc:clickhouse://localhost:8123/events
+    pool:
+      enabled: false
 
 
   data:
@@ -35,16 +41,9 @@ spring:
     jwt:
       public-key: classpath:certs/public.pem
 
-  liquibase:
-    url: jdbc:clickhouse://localhost:8123/events
-    user: events
-    password: events
-    change-log: classpath:liquibase/changelog-master.yml
-    enabled: true
-
 
 server:
-  port: 8080
+  port: 8082
 
 kafka:
   topics:
@@ -81,3 +80,4 @@ logging:
     org.springframework.data.mongodb: DEBUG
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
+    org.springframework.data.r2dbc: DEBUG

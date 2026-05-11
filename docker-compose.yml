@@ -29,6 +29,7 @@ services:
       - "127.0.0.1:8123:8123"
     volumes:
       - clickhouse_data:/var/lib/clickhouse
+      - ./init/init_clickhouse.sh:/docker-entrypoint-initdb.d/init-clickhouse.sh
 
   kafka1:
     image: apache/kafka:4.0.2
