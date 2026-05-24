@@ -17,20 +17,6 @@ services:
     volumes:
       - redis_data:/data
 
-  clickhouse:
-    image: clickhouse/clickhouse-server:25.1.2.3
-    environment:
-      CLICKHOUSE_USER: events
-      CLICKHOUSE_PASSWORD: events
-      CLICKHOUSE_DB: events
-      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
-
-    ports:
-      - "127.0.0.1:8123:8123"
-    volumes:
-      - clickhouse_data:/var/lib/clickhouse
-      - ./init/init_clickhouse.sh:/docker-entrypoint-initdb.d/init-clickhouse.sh
-
   kafka1:
     image: apache/kafka:4.0.2
     ports:

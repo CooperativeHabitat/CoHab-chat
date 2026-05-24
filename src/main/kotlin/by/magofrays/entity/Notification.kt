@@ -9,7 +9,7 @@ import java.util.UUID
 data class Notification (
     @Id
     val id: UUID = UUID.randomUUID(),
-    val from: String,
+    val sender: String,
     val recipient: UUID,
     val message: String,
     val createdAt: Instant

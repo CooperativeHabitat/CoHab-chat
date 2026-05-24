@@ -6,7 +6,6 @@ import by.magofrays.repository.NotificationRepository
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Sinks
 import tools.jackson.databind.ObjectMapper
 
 
@@ -18,12 +17,14 @@ class KafkaSenderService(
 ) {
     private val log = LoggerFactory.getLogger(KafkaSenderService::class.java)
 
-    @KafkaListener(topics = [$$"${kafka.topics.notification}"])
+    @KafkaListener(topics = ["notification"],
+        containerFactory = "kafkaListenerContainerFactory",
+        groupId = "cohab.chat")
     fun notificationsConsumer(notificationString: String){
         log.info("Received notification consumer for $notificationString")
         val notificationDto = objectMapper.readValue(notificationString, NotificationDto::class.java)
         val notification = Notification(
-            from = notificationDto.from,
+            sender = notificationDto.from,
             message = notificationDto.message,
             recipient = notificationDto.recipient,
             createdAt = notificationDto.createdAt

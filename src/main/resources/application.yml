@@ -1,8 +1,4 @@
 spring:
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.data.r2dbc.autoconfigure.DataR2dbcAutoConfiguration
-
   application:
     name: CoHab-chat
 
@@ -16,12 +12,11 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
 
-  r2dbc:
+  datasource:
     username: events
     password: events
-    url: r2dbc:clickhouse://localhost:8123/events
-    pool:
-      enabled: false
+    url: jdbc:ch://localhost:8123/events
+    driver-class-name: com.clickhouse.jdbc.ClickHouseDriver
 
 
   data:
