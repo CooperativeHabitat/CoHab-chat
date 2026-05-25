@@ -12,7 +12,6 @@ import java.util.*
 @Repository
 interface NotificationRepository : R2dbcRepository<Notification, UUID> {
 
-    fun save(notification: Notification): Mono<Notification>
     fun findByRecipientAndCreatedAtBetween(
         recipient: UUID,
         startDate: Instant?,

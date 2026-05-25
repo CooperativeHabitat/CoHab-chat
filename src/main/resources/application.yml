@@ -6,24 +6,20 @@ spring:
     virtual:
       enabled: true
 
-  mongodb:
-    uri: mongodb://localhost:27017/cohab_chat
-
   kafka:
     bootstrap-servers: localhost:9092
 
-  datasource:
-    username: events
-    password: events
-    url: jdbc:ch://localhost:8123/events
-    driver-class-name: com.clickhouse.jdbc.ClickHouseDriver
-
+  r2dbc:
+    username: magofrays
+    password: labubu
+    url: r2dbc:postgresql://localhost:5433/cohab
 
   data:
-    redis:
+    redis:0
       host: localhost
       port: 6379
     mongodb:
+      uri: mongodb://localhost:27017/cohab_chat
       auto-index-creation: true
 
   rsocket:
@@ -35,6 +31,13 @@ spring:
   security:
     jwt:
       public-key: classpath:certs/public.pem
+
+  liquibase:
+    enabled: true
+    url: jdbc:postgresql://localhost:5433/cohab
+    user: magofrays
+    password: labubu
+    change-log: classpath:liquibase/changelog-master.yml
 
 
 server:
