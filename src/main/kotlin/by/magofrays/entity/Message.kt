@@ -13,8 +13,8 @@ data class Message(
     val content: String,
     val replyToId: String? = null,
     @Indexed
-    val familyId: String,
-    val memberId: String,
+    var familyId: String,
+    var memberId: String?,
     val multimediaUrl: List<String> = emptyList(),
     val reactions: List<Reaction> = emptyList(),
     val reads: List<MessageRead> = emptyList(),

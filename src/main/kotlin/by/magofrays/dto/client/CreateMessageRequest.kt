@@ -1,7 +1,9 @@
 package by.magofrays.dto.client
 
-import by.magofrays.dto.MessageDto
+import java.util.UUID
 
 data class CreateMessageRequest(
-    val messageDto: MessageDto
+    val content: String,
+    val replyToId: UUID? = null,
+    val familyId: UUID,
 )

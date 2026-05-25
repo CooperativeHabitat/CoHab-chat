@@ -5,6 +5,7 @@ import by.magofrays.dto.MessageDto
 import by.magofrays.dto.client.CreateMessageRequest
 import by.magofrays.dto.client.EditMessageRequest
 import by.magofrays.repository.MessageRepository
+import mapper.MessageMapper
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -22,8 +23,8 @@ import java.util.*
 class MessageService(
     val messageRepository: MessageRepository,
     val chatChannel: ReactiveRedisTemplate<String, ChatResponse>,
-//    val accessChannel: ReactiveRedisTemplate<String, List<Access>>,
     val objectMapper: ObjectMapper,
+    val messageMapper: MessageMapper
 ) {
     private val log = LoggerFactory.getLogger(MessageService::class.java)
 
@@ -41,8 +42,18 @@ class MessageService(
             .doOnCancel { log.info("Canceled subscription to client") }
     }
 
-    fun createMessage(familyId: UUID, createMessageRequest: CreateMessageRequest): Mono<ChatResponse>? {
-        return null
+    fun createMessage(memberId: UUID, createMessageRequest: CreateMessageRequest): Mono<ChatResponse>? {
+        val channel = "family:chat:${createMessageRequest.familyId}"
+        val messageEntity = messageMapper.toEntity(createMessageRequest)
+        messageEntity.memberId = memberId.toString()
+        return messageRepository.save(messageEntity).map {
+            message -> messageMapper.toChatResponse(message)
+        }.doOnNext {
+            chatResponse ->
+            log.info("Sending message to family {} with message {}", createMessageRequest.familyId, chatResponse)
+            chatChannel.convertAndSend(channel, chatResponse)
+        }
+
     }
 
     fun editMessage(familyId: UUID, messageId: UUID, request: EditMessageRequest): Mono<ChatResponse>? {
