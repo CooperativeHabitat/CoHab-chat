@@ -29,7 +29,7 @@ class MessageService(
     private val log = LoggerFactory.getLogger(MessageService::class.java)
 
 
-    fun connectFamilyChatStream(familyId: String): Flux<ChatResponse> {
+    fun connectFamilyChatStream(memberId: UUID, familyId: String): Flux<ChatResponse> {
         val channel = "family:chat:$familyId"
         val subscription = chatChannel
             .listenTo(ChannelTopic.of(channel))

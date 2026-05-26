@@ -14,6 +14,9 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.messaging.handler.annotation.DestinationVariable
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.Payload
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Controller
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -25,46 +28,65 @@ class FamilyRSocketController(
     val familyMessageService: MessageService,
 ) {
 
+    @PreAuthorize("hasAuthority('USER') && hasPermission(#familyId, 'family', 'SHOW_CHAT')")
     @MessageMapping("chat.{familyId}.stream")
     fun connectFamilyChat(
+        @AuthenticationPrincipal memberToken: Jwt,
         @DestinationVariable familyId: String) : Flux<ChatResponse> {
-        return familyMessageService.connectFamilyChatStream(familyId)
+        val memberId = UUID.fromString(memberToken.subject)
+        return familyMessageService.connectFamilyChatStream(memberId, familyId)
     }
 
+    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'CREATE_MESSAGE')")
     @MessageMapping("chat.send")
     fun sendNewMessage(
+        @AuthenticationPrincipal memberToken: Jwt,
         @Payload request: CreateMessageRequest) : Mono<Void> {
-        val memberId = UUID.randomUUID()
+        val memberId = UUID.fromString(memberToken.subject)
         return familyMessageService.createMessage(memberId, request).then()
     }
 
+    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'EDIT_MESSAGE')")
     @MessageMapping("chat.edit")
     fun editMessage(
+        @AuthenticationPrincipal memberToken: Jwt,
         @Payload request: EditMessageRequest) : Mono<Void> {
-        return familyMessageService.editMessage(UUID.randomUUID(), request)
+        val memberId = UUID.fromString(memberToken.subject)
+        return familyMessageService.editMessage(memberId, request)
     }
 
+    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'SHOW_MESSAGE')")
     @MessageMapping("chat.view")
     fun viewMessage(
+        @AuthenticationPrincipal memberToken: Jwt,
         @Payload request: ViewMessageRequest) : Mono<Void> {
-        return familyMessageService.viewMessage(UUID.randomUUID(), request)
+        val memberId = UUID.fromString(memberToken.subject)
+        return familyMessageService.viewMessage(memberId, request)
     }
 
+    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'REACT_MESSAGE')")
     @MessageMapping("chat.react")
     fun reactMessage(
+        @AuthenticationPrincipal memberToken: Jwt,
         @Payload request: ReactMessageRequest) : Mono<Void> {
-        return familyMessageService.reactMessage(UUID.randomUUID(), request)
+        val memberId = UUID.fromString(memberToken.subject)
+        return familyMessageService.reactMessage(memberId, request)
     }
 
+    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'DELETE_MESSAGE')")
     @MessageMapping("chat.delete")
     fun deleteMessage(
+        @AuthenticationPrincipal memberToken: Jwt,
         @Payload request: DeleteMessageRequest) : Mono<Void> {
-        return familyMessageService.deleteMessage(UUID.randomUUID(), request)
+        val memberId = UUID.fromString(memberToken.subject)
+        return familyMessageService.deleteMessage(memberId, request)
     }
 
 
+    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'SHOW_MESSAGE')")
     @MessageMapping("messages.{familyId}")
     fun findAllMessagesByFamily(
+        @AuthenticationPrincipal memberToken: Jwt,
         @DestinationVariable familyId: UUID,
         @Payload request: MessageRequest
     ): Flux<MessageDto> {

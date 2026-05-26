@@ -4,8 +4,6 @@ import by.magofrays.dto.ChatResponse
 import by.magofrays.dto.MessageDto
 import by.magofrays.dto.MessageRequest
 import by.magofrays.dto.client.*
-import org.springframework.core.ParameterizedTypeReference
-import org.springframework.data.domain.Page
 import org.springframework.http.MediaType
 import org.springframework.http.codec.json.JacksonJsonDecoder
 import org.springframework.http.codec.json.JacksonJsonEncoder
@@ -47,10 +45,12 @@ fun main() {
     println("--- Отправка ---")
     requester
         .route("api.family.chat.send")
-        .data(CreateMessageRequest(
-            content = "Привет, семья!",
-            familyId = familyId
-        ))
+        .data(
+            CreateMessageRequest(
+                content = "Привет, семья!",
+                familyId = familyId
+            )
+        )
         .send()
         .block()
     Thread.sleep(500)
@@ -59,12 +59,14 @@ fun main() {
     println("\n--- История ---")
     val messages: List<MessageDto> = requester
         .route("api.family.messages.$familyId")
-        .data(MessageRequest(
-            page = 0,
-            size = 10,
-            startDate = Instant.now().minusSeconds(86400),
-            endDate = Instant.now()
-        ))
+        .data(
+            MessageRequest(
+                page = 0,
+                size = 10,
+                startDate = Instant.now().minusSeconds(86400),
+                endDate = Instant.now()
+            )
+        )
         .retrieveFlux(MessageDto::class.java)
         .collectList()
         .block()!!
@@ -86,11 +88,13 @@ fun main() {
     println("\n--- Редактирование ---")
     requester
         .route("api.family.chat.edit")
-        .data(EditMessageRequest(
-            messageId = messageId,
-            content = "Привет, семья! (отредактировано)",
-            familyId = familyId
-        ))
+        .data(
+            EditMessageRequest(
+                messageId = messageId,
+                content = "Привет, семья! (отредактировано)",
+                familyId = familyId
+            )
+        )
         .send()
         .block()
     Thread.sleep(500)
@@ -98,10 +102,12 @@ fun main() {
     println("\n--- Просмотр ---")
     requester
         .route("api.family.chat.view")
-        .data(ViewMessageRequest(
-            familyId = familyId,
-            messageId = messageId
-        ))
+        .data(
+            ViewMessageRequest(
+                familyId = familyId,
+                messageId = messageId
+            )
+        )
         .send()
         .block()
     Thread.sleep(500)
@@ -109,11 +115,13 @@ fun main() {
     println("\n--- Реакция ---")
     requester
         .route("api.family.chat.react")
-        .data(ReactMessageRequest(
-            messageId = messageId,
-            reaction = "👍",
-            familyId = familyId
-        ))
+        .data(
+            ReactMessageRequest(
+                messageId = messageId,
+                reaction = "👍",
+                familyId = familyId
+            )
+        )
         .send()
         .block()
     Thread.sleep(500)
@@ -121,10 +129,12 @@ fun main() {
     println("\n--- Удаление ---")
     requester
         .route("api.family.chat.delete")
-        .data(DeleteMessageRequest(
-            familyId = familyId,
-            messageId = messageId
-        ))
+        .data(
+            DeleteMessageRequest(
+                familyId = familyId,
+                messageId = messageId
+            )
+        )
         .send()
         .block()
     Thread.sleep(500)

@@ -1,40 +1,63 @@
-//package by.magofrays.configuration
-//
-//import org.springframework.beans.factory.annotation.Value
-//import org.springframework.context.annotation.Bean
-//import org.springframework.context.annotation.Configuration
-//import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
-//import org.springframework.security.config.annotation.web.socket.EnableWebSocketSecurity
-//import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder
-//import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder
-//import org.springframework.web.cors.CorsConfiguration
-//import org.springframework.web.cors.reactive.CorsConfigurationSource
-//import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
-//import java.security.interfaces.RSAPublicKey
-//
-//
-//@Configuration
-//@EnableWebFluxSecurity
-//class SecurityConfiguration{
-//    @Value($$"${spring.security.jwt.public-key}")
-//    lateinit var publicKey: RSAPublicKey
-//
-//    @Bean
-//    fun reactiveJwtDecoder(): ReactiveJwtDecoder {
-//        return NimbusReactiveJwtDecoder.withPublicKey(publicKey).build()
-//    }
-//
-//
-//    @Bean
-//    fun corsConfigurationSource(): CorsConfigurationSource {
-//        val cors = CorsConfiguration()
-//        cors.allowedOrigins = listOf("*")
-//        cors.allowedMethods = listOf("*")
-//        cors.allowCredentials = true
-//        val source = UrlBasedCorsConfigurationSource()
-//        source.apply { registerCorsConfiguration("/**", cors) }
-//        return source
-//    }
-//
-//
-//}
+package by.magofrays.configuration
+
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
+import org.springframework.security.config.annotation.rsocket.EnableRSocketSecurity
+import org.springframework.security.config.annotation.rsocket.RSocketSecurity
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm
+import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder
+import org.springframework.security.oauth2.server.resource.authentication.JwtReactiveAuthenticationManager
+import org.springframework.security.rsocket.core.PayloadSocketAcceptorInterceptor
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.reactive.CorsConfigurationSource
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
+import java.security.interfaces.RSAPublicKey
+
+
+@Configuration
+@EnableWebFluxSecurity
+@EnableRSocketSecurity
+@EnableReactiveMethodSecurity
+class SecurityConfiguration{
+    @Value($$"${spring.security.jwt.public-key}")
+    lateinit var publicKey: RSAPublicKey
+
+    @Bean
+    fun reactiveJwtDecoder(): ReactiveJwtDecoder {
+        return NimbusReactiveJwtDecoder.withPublicKey(publicKey)
+            .signatureAlgorithm(SignatureAlgorithm.RS256).build()
+    }
+
+    @Bean
+    fun authorization(security: RSocketSecurity): PayloadSocketAcceptorInterceptor {
+        return security
+            .authorizePayload { authorize ->
+                authorize
+                    .anyRequest().authenticated()
+                    .anyExchange().permitAll()
+            }
+            .jwt { jwtSpec ->
+                jwtSpec.authenticationManager(
+                    JwtReactiveAuthenticationManager(reactiveJwtDecoder())
+                )
+            }
+            .build()
+    }
+
+    @Bean
+    fun corsConfigurationSource(): CorsConfigurationSource {
+        val cors = CorsConfiguration()
+        cors.allowedOrigins = listOf("*")
+        cors.allowedMethods = listOf("*")
+        cors.allowCredentials = true
+        val source = UrlBasedCorsConfigurationSource()
+        source.apply { registerCorsConfiguration("/**", cors) }
+        return source
+    }
+
+
+}

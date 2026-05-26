@@ -25,6 +25,8 @@ dependencies {
     // Spring Boot
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-rsocket")
+    implementation("org.springframework.security:spring-security-rsocket")
+
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
     implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
     implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
@@ -32,7 +34,7 @@ dependencies {
     implementation("io.r2dbc:r2dbc-postgresql:0.8.13.RELEASE")
     implementation("org.postgresql:postgresql:42.7.8")
     implementation("org.springframework.kafka:spring-kafka")
-//    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
