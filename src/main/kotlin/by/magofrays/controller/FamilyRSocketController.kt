@@ -4,7 +4,9 @@ import by.magofrays.dto.ChatResponse
 import by.magofrays.dto.MessageDto
 import by.magofrays.dto.MessageRequest
 import by.magofrays.dto.client.CreateMessageRequest
+import by.magofrays.dto.client.DeleteMessageRequest
 import by.magofrays.dto.client.EditMessageRequest
+import by.magofrays.dto.client.ReactMessageRequest
 import by.magofrays.dto.client.ViewMessageRequest
 import by.magofrays.service.MessageService
 import org.springframework.data.domain.Page
@@ -29,39 +31,35 @@ class FamilyRSocketController(
         return familyMessageService.connectFamilyChatStream(familyId)
     }
 
-    @MessageMapping("chat.{familyId}.send")
+    @MessageMapping("chat.send")
     fun sendNewMessage(
-        @Payload request: CreateMessageRequest) : Mono<ChatResponse>? {
+        @Payload request: CreateMessageRequest) : Mono<Void> {
         val memberId = UUID.randomUUID()
-        return familyMessageService.createMessage(memberId, request)
+        return familyMessageService.createMessage(memberId, request).then()
     }
 
-    @MessageMapping("chat.{familyId}.edit")
+    @MessageMapping("chat.edit")
     fun editMessage(
-        @DestinationVariable familyId: String,
-        @Payload request: EditMessageRequest) : Mono<ChatResponse>? {
-        return null
+        @Payload request: EditMessageRequest) : Mono<Void> {
+        return familyMessageService.editMessage(UUID.randomUUID(), request)
     }
 
-    @MessageMapping("chat.{familyId}.view")
+    @MessageMapping("chat.view")
     fun viewMessage(
-        @DestinationVariable familyId: String,
-        @Payload request: ViewMessageRequest) : Mono<ChatResponse>? {
-        return null
+        @Payload request: ViewMessageRequest) : Mono<Void> {
+        return familyMessageService.viewMessage(UUID.randomUUID(), request)
     }
 
-    @MessageMapping("chat.{familyId}.react")
+    @MessageMapping("chat.react")
     fun reactMessage(
-        @DestinationVariable familyId: String,
-        @Payload request: MessageDto) : Mono<ChatResponse>? {
-        return null
+        @Payload request: ReactMessageRequest) : Mono<Void> {
+        return familyMessageService.reactMessage(UUID.randomUUID(), request)
     }
 
-    @MessageMapping("chat.{familyId}.delete")
+    @MessageMapping("chat.delete")
     fun deleteMessage(
-        @DestinationVariable familyId: String,
-        @Payload request: MessageDto) : Mono<ChatResponse>? {
-        return null
+        @Payload request: DeleteMessageRequest) : Mono<Void> {
+        return familyMessageService.deleteMessage(UUID.randomUUID(), request)
     }
 
 

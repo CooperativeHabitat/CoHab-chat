@@ -2,10 +2,11 @@ package by.magofrays.service
 
 import by.magofrays.dto.ChatResponse
 import by.magofrays.dto.MessageDto
-import by.magofrays.dto.client.CreateMessageRequest
-import by.magofrays.dto.client.EditMessageRequest
+import by.magofrays.dto.client.*
+import by.magofrays.entity.MessageRead
+import by.magofrays.entity.Reaction
 import by.magofrays.repository.MessageRepository
-import mapper.MessageMapper
+import by.magofrays.mapper.MessageMapper
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -42,26 +43,99 @@ class MessageService(
             .doOnCancel { log.info("Canceled subscription to client") }
     }
 
-    fun createMessage(memberId: UUID, createMessageRequest: CreateMessageRequest): Mono<ChatResponse>? {
-        val channel = "family:chat:${createMessageRequest.familyId}"
-        val messageEntity = messageMapper.toEntity(createMessageRequest)
+    fun createMessage(memberId: UUID, request: CreateMessageRequest): Mono<Void> {
+        val channel = "family:chat:${request.familyId}"
+        val messageEntity = messageMapper.toEntity(request)
         messageEntity.memberId = memberId.toString()
-        return messageRepository.save(messageEntity).map {
-            message -> messageMapper.toChatResponse(message)
-        }.doOnNext {
-            chatResponse ->
-            log.info("Sending message to family {} with message {}", createMessageRequest.familyId, chatResponse)
-            chatChannel.convertAndSend(channel, chatResponse)
-        }
 
+        return messageRepository.save(messageEntity)
+            .map { message ->
+                messageMapper.toChatResponse(message).apply {
+                    operationType = ChatResponse.ChatOperationType.NEW_MESSAGE
+                }
+            }
+            .flatMap { chatResponse ->
+                log.info("Sending new message {} to family {}", chatResponse, request.familyId)
+                chatChannel.convertAndSend(channel, chatResponse)
+            }
+            .then()
     }
 
-    fun editMessage(familyId: UUID, messageId: UUID, request: EditMessageRequest): Mono<ChatResponse>? {
-        return null
+    fun editMessage(memberId: UUID, request: EditMessageRequest): Mono<Void> {
+        val channel = "family:chat:${request.familyId}"
+
+        return messageRepository.findById(request.messageId)
+            .flatMap { messageEntity ->
+                messageEntity.content = request.content
+                messageEntity.updatedAt = Instant.now()
+                messageRepository.save(messageEntity)
+                    .map { messageMapper.toChatResponse(it).apply {
+                        operationType = ChatResponse.ChatOperationType.EDIT_MESSAGE
+                    }}
+            }
+            .flatMap { chatResponse ->
+                log.info("Sending edited message {} to family {}", chatResponse, request.familyId)
+                chatChannel.convertAndSend(channel, chatResponse)
+            }
+            .then()
     }
 
-    fun deleteMessage(familyId: UUID, messageId: UUID): Mono<ChatResponse>? {
-        return null
+    fun deleteMessage(memberId: UUID, request: DeleteMessageRequest): Mono<Void> {
+        val channel = "family:chat:${request.familyId}"
+
+        return messageRepository.findById(request.messageId)
+            .flatMap { messageEntity ->
+                val chatResponse = messageMapper.toChatResponse(messageEntity).apply {
+                    operationType = ChatResponse.ChatOperationType.DELETE_MESSAGE
+                }
+                log.info("Sending deleted message {} to family {}", chatResponse, request.familyId)
+                messageRepository.delete(messageEntity)
+                    .then(chatChannel.convertAndSend(channel, chatResponse))
+            }
+            .then()
+    }
+
+    fun viewMessage(memberId: UUID, request: ViewMessageRequest): Mono<Void> {
+        val channel = "family:chat:${request.familyId}"
+
+        return messageRepository.findById(request.messageId)
+            .flatMap { messageEntity ->
+                val currentReads = messageEntity.reads ?: emptyList()
+                if (currentReads.none { it.memberId == memberId.toString() }) {
+                    messageEntity.reads = currentReads + MessageRead(
+                        memberId = memberId.toString()
+                    )
+                }
+                messageRepository.save(messageEntity)
+                    .map { messageMapper.toChatResponse(it).apply {
+                        operationType = ChatResponse.ChatOperationType.VIEWED_MESSAGE
+                    }}
+            }
+            .flatMap { chatResponse ->
+                chatChannel.convertAndSend(channel, chatResponse)
+            }
+            .then()
+    }
+
+    fun reactMessage(memberId: UUID, request: ReactMessageRequest): Mono<Void> {
+        val channel = "family:chat:${request.familyId}"
+
+        return messageRepository.findById(request.messageId)
+            .flatMap { messageEntity ->
+                val currentReactions = messageEntity.reactions ?: emptyList()
+                messageEntity.reactions = currentReactions
+                    .filter { it.memberId != memberId.toString() } +
+                        Reaction(memberId = memberId.toString(), reaction = request.reaction)
+
+                messageRepository.save(messageEntity)
+                    .map { messageMapper.toChatResponse(it).apply {
+                        operationType = ChatResponse.ChatOperationType.REACTION_ON_MESSAGE
+                    }}
+            }
+            .flatMap { chatResponse ->
+                chatChannel.convertAndSend(channel, chatResponse)
+            }
+            .then()
     }
 
     fun findAllMessagesByFamily(
