@@ -10,8 +10,7 @@ import java.time.Instant
 import java.util.*
 
 @Repository
-interface MessageRepository : ReactiveMongoRepository<Message, UUID> {
+interface MessageRepository : ReactiveMongoRepository<Message, String> {
 
     fun findByFamilyIdAndSentAtBetween(familyId: String, startDate: Instant?, endDate: Instant?, pageable: Pageable): Flux<Message>
-    fun countByFamilyIdAndSentAtBetween(familyId: String, startDate: Instant?, endDate: Instant?): Mono<Long>
 }

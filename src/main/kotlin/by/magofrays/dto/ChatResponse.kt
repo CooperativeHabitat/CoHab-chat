@@ -8,6 +8,7 @@ data class ChatResponse (
     val familyId: String,
     val memberId: String,
     val messageId: String,
+    val content: String,
     val reactions: List<Reaction>?,
     val reads: List<MessageRead>?,
     var operationType: ChatOperationType?,

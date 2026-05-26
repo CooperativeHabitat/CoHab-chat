@@ -3,7 +3,7 @@ package by.magofrays.dto.client
 import java.util.UUID
 
 data class EditMessageRequest(
-    val messageId: UUID,
+    val messageId: String,
     val content: String,
     val familyId: UUID
 )

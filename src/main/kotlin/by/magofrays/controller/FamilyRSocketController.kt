@@ -65,12 +65,12 @@ class FamilyRSocketController(
 
     @MessageMapping("messages.{familyId}")
     fun findAllMessagesByFamily(
-        @DestinationVariable familyId: String,
+        @DestinationVariable familyId: UUID,
         @Payload request: MessageRequest
-    ): Mono<Page<MessageDto>> {
+    ): Flux<MessageDto> {
         val pageable = PageRequest.of(request.page, request.size)
         return familyMessageService.findAllMessagesByFamily(
-            familyId,
+            familyId.toString(),
             request.startDate,
             request.endDate,
             pageable

@@ -4,5 +4,5 @@ import java.util.UUID
 
 data class ViewMessageRequest (
     val familyId: UUID,
-    val messageId: UUID
+    val messageId: String
 )

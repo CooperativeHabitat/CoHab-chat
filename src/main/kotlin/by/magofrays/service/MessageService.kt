@@ -24,7 +24,6 @@ import java.util.*
 class MessageService(
     val messageRepository: MessageRepository,
     val chatChannel: ReactiveRedisTemplate<String, ChatResponse>,
-    val objectMapper: ObjectMapper,
     val messageMapper: MessageMapper
 ) {
     private val log = LoggerFactory.getLogger(MessageService::class.java)
@@ -137,19 +136,14 @@ class MessageService(
             }
             .then()
     }
-
     fun findAllMessagesByFamily(
         familyId: String,
         startDate: Instant?,
         endDate: Instant?,
         pageable: Pageable
-    ): Mono<Page<MessageDto>> {
+    ): Flux<MessageDto> {
         return messageRepository.findByFamilyIdAndSentAtBetween(familyId, startDate, endDate, pageable)
-            .map { message -> objectMapper.convertValue(message, MessageDto::class.java) }
-            .collectList()
-            .zipWith(messageRepository.countByFamilyIdAndSentAtBetween(familyId, startDate, endDate))
-            .map { p -> PageImpl(p.getT1(), pageable, p.getT2()) }
+            .map { message -> messageMapper.toDto(message) }
     }
-
 
 }
