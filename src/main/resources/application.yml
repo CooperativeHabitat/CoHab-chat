@@ -7,19 +7,20 @@ spring:
       enabled: true
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
 
   r2dbc:
-    username: magofrays
-    password: labubu
-    url: r2dbc:postgresql://localhost:5433/cohab
+    username: ${EVENT_DB_USER:magofrays}
+    password: ${EVENT_DB_PASSWORD:labubu}
+    url: r2dbc:postgresql://${EVENT_DB_CONTAINER_NAME:localhost}:5433/${EVENT_DB:cohab}
 
   data:
     redis:
-      host: localhost
-      port: 6379
+      timeout: ${REDIS_TIMEOUT:60000}
+      host: ${REDIS_CONTAINER_NAME:localhost}
+      port: ${REDIS_PORT:6379}
     mongodb:
-      uri: mongodb://localhost:27017/cohab_chat
+      uri: mongodb://${MONGO_USER:magofrays}:${MONGO_PASSWORD:labubu}@${MONGO_CONTAINER_NAME:localhost}:${MONGO_PORT:27017}/${MONGO_DB:cohab_chat}?authSource=admin
       auto-index-creation: true
 
   rsocket:
@@ -31,17 +32,24 @@ spring:
   security:
     jwt:
       public-key: classpath:certs/public.pem
+      expires-at: ${EXPIRES_AT:86400}
+    cors:
+      allowed-origins: ${ALLOWED_ORIGINS:localhost:5173}
+      allowed-methods: ${ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+      allowed-headers: "*"
+      allow-credentials: true
+      max-age: 3600
 
   liquibase:
     enabled: true
-    url: jdbc:postgresql://localhost:5433/cohab
-    user: magofrays
-    password: labubu
+    url: jdbc:postgresql://${EVENT_DB_CONTAINER_NAME:localhost}:${EVENT_DB_PORT:5433}/${EVENT_DB:cohab}
+    user: ${EVENT_DB_USER:magofrays}
+    password: ${EVENT_DB_PASSWORD:labubu}
     change-log: classpath:liquibase/changelog-master.yml
 
 
 server:
-  port: 8082
+  port: ${COHAB_CHAT_PORT:8082}
 
 kafka:
   topics:
@@ -73,9 +81,9 @@ springdoc:
 
 logging:
   level:
-    root: INFO
-    by.magofrays: DEBUG
-    org.springframework.data.mongodb: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.web: DEBUG
-    org.springframework.data.r2dbc: DEBUG
+    root: ${LOGGING_LEVEL:INFO}
+    by.magofrays: ${LOGGING_LEVEL:INFO}
+    org.springframework.data.mongodb: ${LOGGING_LEVEL:INFO}
+    org.springframework.security: ${LOGGING_LEVEL:INFO}
+    org.springframework.web: ${LOGGING_LEVEL:INFO}
+    org.springframework.data.r2dbc: ${LOGGING_LEVEL:INFO}

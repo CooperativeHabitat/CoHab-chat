@@ -24,7 +24,9 @@ import java.security.interfaces.RSAPublicKey
 @EnableWebFluxSecurity
 @EnableRSocketSecurity
 @EnableReactiveMethodSecurity
-class SecurityConfiguration {
+class SecurityConfiguration(
+    private val corsProperties: CorsProperties
+) {
     @Value("\${spring.security.jwt.public-key}")
     lateinit var publicKey: RSAPublicKey
 
@@ -63,9 +65,11 @@ class SecurityConfiguration {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val cors = CorsConfiguration()
-        cors.allowedOrigins = listOf("*")
-        cors.allowedMethods = listOf("*")
-        cors.allowCredentials = true
+        cors.allowedOrigins = corsProperties.allowedOrigins
+        cors.allowedMethods = corsProperties.allowedMethods
+        cors.allowedHeaders = corsProperties.allowedMethods
+        cors.allowCredentials = corsProperties.allowCredentials
+        cors.maxAge = corsProperties.maxAge
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", cors)
         return source

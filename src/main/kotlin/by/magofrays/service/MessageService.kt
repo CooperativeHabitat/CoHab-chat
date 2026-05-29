@@ -5,7 +5,7 @@ import by.magofrays.dto.MessageDto
 import by.magofrays.dto.client.*
 import by.magofrays.entity.MessageRead
 import by.magofrays.entity.Reaction
-import by.magofrays.repository.MessageRepository
+import by.magofrays.repository.mongo.MessageRepository
 import by.magofrays.mapper.MessageMapper
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
