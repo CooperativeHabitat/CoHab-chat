@@ -66,7 +66,7 @@ class FamilyRSocketController(
         @AuthenticationPrincipal memberToken: Jwt,
         @Payload request: ViewMessageRequest) : Mono<Void> {
         val memberId = UUID.fromString(memberToken.subject)
-        return familyMessageService.viewMessage(memberId, request)
+        return mono { familyMessageService.viewMessage(memberId, request) }.then()
     }
 
     @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'REACT_MESSAGE')")
@@ -75,7 +75,7 @@ class FamilyRSocketController(
         @AuthenticationPrincipal memberToken: Jwt,
         @Payload request: ReactMessageRequest) : Mono<Void> {
         val memberId = UUID.fromString(memberToken.subject)
-        return familyMessageService.reactMessage(memberId, request)
+        return mono { familyMessageService.reactMessage(memberId, request) }.then()
     }
 
     @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'DELETE_MESSAGE')")
@@ -84,7 +84,7 @@ class FamilyRSocketController(
         @AuthenticationPrincipal memberToken: Jwt,
         @Payload request: DeleteMessageRequest) : Mono<Void> {
         val memberId = UUID.fromString(memberToken.subject)
-        return familyMessageService.deleteMessage(memberId, request)
+        return mono{ familyMessageService.deleteMessage(memberId, request) }.then()
     }
 
 
