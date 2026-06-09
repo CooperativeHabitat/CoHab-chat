@@ -9,6 +9,7 @@ import by.magofrays.dto.client.EditMessageRequest
 import by.magofrays.dto.client.ReactMessageRequest
 import by.magofrays.dto.client.ViewMessageRequest
 import by.magofrays.service.MessageService
+import kotlinx.coroutines.reactor.mono
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.messaging.handler.annotation.DestinationVariable
@@ -43,7 +44,9 @@ class FamilyRSocketController(
         @AuthenticationPrincipal memberToken: Jwt,
         @Payload request: CreateMessageRequest) : Mono<Void> {
         val memberId = UUID.fromString(memberToken.subject)
-        return familyMessageService.createMessage(memberId, request).then()
+        return mono {
+            familyMessageService.createMessage(memberId, request)
+        }.then()
     }
 
     @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'EDIT_MESSAGE')")
@@ -52,7 +55,9 @@ class FamilyRSocketController(
         @AuthenticationPrincipal memberToken: Jwt,
         @Payload request: EditMessageRequest) : Mono<Void> {
         val memberId = UUID.fromString(memberToken.subject)
-        return familyMessageService.editMessage(memberId, request)
+        return mono {
+            familyMessageService.editMessage(memberId, request) }
+            .then()
     }
 
     @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'SHOW_MESSAGE')")
