@@ -7,6 +7,8 @@ import by.magofrays.entity.MessageRead
 import by.magofrays.entity.Reaction
 import by.magofrays.mapper.MessageMapper
 import by.magofrays.repository.mongo.MessageRepository
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Pageable
@@ -100,14 +102,16 @@ class MessageService(
         chatChannel.convertAndSend(channel, chatResponse).awaitSingle()
     }
 
-    fun findAllMessagesByFamily(
+    suspend fun findAllMessagesByFamily(
         familyId: String,
         startDate: Instant?,
         endDate: Instant?,
         pageable: Pageable
-    ): Flux<MessageDto> {
-        return messageRepository.findByFamilyIdAndSentAtBetween(familyId, startDate, endDate, pageable)
-            .map { message -> messageMapper.toDto(message) }
+    ): List<MessageDto> {
+        val messages = messageRepository.findByFamilyIdAndSentAtBetween(familyId, startDate, endDate, pageable)
+            .collectList().awaitSingle()
+        val messageDtos = messages.map { messageMapper.toDto(it) }
+        return messageDtos
     }
 
 }

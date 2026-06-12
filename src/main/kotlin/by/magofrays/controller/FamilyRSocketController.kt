@@ -94,13 +94,15 @@ class FamilyRSocketController(
 //        @AuthenticationPrincipal memberToken: Jwt,
         @DestinationVariable familyId: UUID,
         @Payload request: MessageRequest
-    ): Flux<MessageDto> {
+    ): Mono<List<MessageDto>> {
         val pageable = PageRequest.of(request.page, request.size)
-        return familyMessageService.findAllMessagesByFamily(
+        val result = mono {familyMessageService.findAllMessagesByFamily(
             familyId.toString(),
             request.startDate,
             request.endDate,
             pageable
         )
+        }
+        return result
     }
 }
