@@ -29,27 +29,27 @@ class FamilyRSocketController(
     val familyMessageService: MessageService,
 ) {
 
-    @PreAuthorize("hasAuthority('USER') && hasPermission(#familyId, 'family', 'SHOW_CHAT')")
+//    @PreAuthorize("hasAuthority('USER') && hasPermission(#familyId, 'family', 'SHOW_CHAT')")
     @MessageMapping("chat.{familyId}.stream")
     fun connectFamilyChat(
-        @AuthenticationPrincipal memberToken: Jwt,
+//        @AuthenticationPrincipal memberToken: Jwt,
         @DestinationVariable familyId: String) : Flux<ChatResponse> {
-        val memberId = UUID.fromString(memberToken.subject)
-        return familyMessageService.connectFamilyChatStream(memberId, familyId)
+//        val memberId = UUID.fromString(memberToken.subject)
+        return familyMessageService.connectFamilyChatStream(UUID.randomUUID(), familyId)
     }
 
-    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'CREATE_MESSAGE')")
+//    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'CREATE_MESSAGE')")
     @MessageMapping("chat.send")
     fun sendNewMessage(
-        @AuthenticationPrincipal memberToken: Jwt,
+//        @AuthenticationPrincipal memberToken: Jwt,
         @Payload request: CreateMessageRequest) : Mono<Void> {
-        val memberId = UUID.fromString(memberToken.subject)
+        val memberId = UUID.randomUUID()
         return mono {
             familyMessageService.createMessage(memberId, request)
         }.then()
     }
 
-    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'EDIT_MESSAGE')")
+//    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'EDIT_MESSAGE')")
     @MessageMapping("chat.edit")
     fun editMessage(
         @AuthenticationPrincipal memberToken: Jwt,
@@ -60,7 +60,7 @@ class FamilyRSocketController(
             .then()
     }
 
-    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'SHOW_MESSAGE')")
+//    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'SHOW_MESSAGE')")
     @MessageMapping("chat.view")
     fun viewMessage(
         @AuthenticationPrincipal memberToken: Jwt,
@@ -69,7 +69,7 @@ class FamilyRSocketController(
         return mono { familyMessageService.viewMessage(memberId, request) }.then()
     }
 
-    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'REACT_MESSAGE')")
+//    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'REACT_MESSAGE')")
     @MessageMapping("chat.react")
     fun reactMessage(
         @AuthenticationPrincipal memberToken: Jwt,
@@ -78,7 +78,7 @@ class FamilyRSocketController(
         return mono { familyMessageService.reactMessage(memberId, request) }.then()
     }
 
-    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'DELETE_MESSAGE')")
+//    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'DELETE_MESSAGE')")
     @MessageMapping("chat.delete")
     fun deleteMessage(
         @AuthenticationPrincipal memberToken: Jwt,
@@ -88,10 +88,10 @@ class FamilyRSocketController(
     }
 
 
-    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'SHOW_MESSAGE')")
+//    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'SHOW_MESSAGE')")
     @MessageMapping("messages.{familyId}")
     fun findAllMessagesByFamily(
-        @AuthenticationPrincipal memberToken: Jwt,
+//        @AuthenticationPrincipal memberToken: Jwt,
         @DestinationVariable familyId: UUID,
         @Payload request: MessageRequest
     ): Flux<MessageDto> {

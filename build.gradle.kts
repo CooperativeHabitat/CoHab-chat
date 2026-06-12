@@ -25,7 +25,7 @@ dependencies {
     // Spring Boot
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-rsocket")
-    implementation("org.springframework.security:spring-security-rsocket")
+//    implementation("org.springframework.security:spring-security-rsocket")
 
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
     implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")

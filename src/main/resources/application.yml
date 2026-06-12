@@ -87,3 +87,4 @@ logging:
     org.springframework.security: ${LOGGING_LEVEL:INFO}
     org.springframework.web: ${LOGGING_LEVEL:INFO}
     org.springframework.data.r2dbc: ${LOGGING_LEVEL:INFO}
+#    io.rsocket.FrameLogger: DEBUG
