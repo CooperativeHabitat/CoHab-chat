@@ -3,25 +3,19 @@ package by.magofrays.controller
 import by.magofrays.dto.ChatResponse
 import by.magofrays.dto.MessageDto
 import by.magofrays.dto.MessageRequest
-import by.magofrays.dto.client.CreateMessageRequest
-import by.magofrays.dto.client.DeleteMessageRequest
-import by.magofrays.dto.client.EditMessageRequest
-import by.magofrays.dto.client.ReactMessageRequest
-import by.magofrays.dto.client.ViewMessageRequest
+import by.magofrays.dto.client.*
 import by.magofrays.service.MessageService
-import kotlinx.coroutines.reactor.mono
-import org.springframework.data.domain.Page
+import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.domain.PageRequest
 import org.springframework.messaging.handler.annotation.DestinationVariable
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Controller
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
-import java.util.UUID
+import java.util.*
 
 @Controller
 @MessageMapping("api.family")
@@ -29,80 +23,78 @@ class FamilyRSocketController(
     val familyMessageService: MessageService,
 ) {
 
-//    @PreAuthorize("hasAuthority('USER') && hasPermission(#familyId, 'family', 'SHOW_CHAT')")
+    suspend fun getFuckingToken(): Jwt {
+        return ReactiveSecurityContextHolder.getContext()
+            .map { it.authentication?.principal as Jwt }
+            .awaitSingle()
+    }
+
+//    @PreAuthorize("hasAuthority('USER')")
     @MessageMapping("chat.{familyId}.stream")
-    fun connectFamilyChat(
-//        @AuthenticationPrincipal memberToken: Jwt,
-        @DestinationVariable familyId: String) : Flux<ChatResponse> {
-//        val memberId = UUID.fromString(memberToken.subject)
-        return familyMessageService.connectFamilyChatStream(UUID.randomUUID(), familyId)
+    suspend fun connectFamilyChat(
+        @DestinationVariable familyId: String
+    ): Flux<ChatResponse> {
+        val memberId = UUID.fromString(getFuckingToken().subject)
+        return familyMessageService.connectFamilyChatStream(memberId, familyId)
     }
 
 //    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'CREATE_MESSAGE')")
     @MessageMapping("chat.send")
-    fun sendNewMessage(
-//        @AuthenticationPrincipal memberToken: Jwt,
-        @Payload request: CreateMessageRequest) : Mono<Void> {
-        val memberId = UUID.randomUUID()
-        return mono {
-            familyMessageService.createMessage(memberId, request)
-        }.then()
+    suspend fun sendNewMessage(
+        @Payload request: CreateMessageRequest
+    ) {
+        val memberId = UUID.fromString(getFuckingToken().subject)
+        familyMessageService.createMessage(memberId, request)
     }
 
 //    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'EDIT_MESSAGE')")
     @MessageMapping("chat.edit")
-    fun editMessage(
-        @AuthenticationPrincipal memberToken: Jwt,
-        @Payload request: EditMessageRequest) : Mono<Void> {
-        val memberId = UUID.fromString(memberToken.subject)
-        return mono {
-            familyMessageService.editMessage(memberId, request) }
-            .then()
+    suspend fun editMessage(
+        @Payload request: EditMessageRequest
+    ) {
+        val memberId = UUID.fromString(getFuckingToken().subject)
+        familyMessageService.editMessage(memberId, request)
     }
 
 //    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'SHOW_MESSAGE')")
     @MessageMapping("chat.view")
-    fun viewMessage(
-        @AuthenticationPrincipal memberToken: Jwt,
-        @Payload request: ViewMessageRequest) : Mono<Void> {
-        val memberId = UUID.fromString(memberToken.subject)
-        return mono { familyMessageService.viewMessage(memberId, request) }.then()
+    suspend fun viewMessage(
+        @Payload request: ViewMessageRequest
+    ) {
+        val memberId = UUID.fromString(getFuckingToken().subject)
+        familyMessageService.viewMessage(memberId, request)
     }
 
-//    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'REACT_MESSAGE')")
+    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'REACT_MESSAGE')")
     @MessageMapping("chat.react")
-    fun reactMessage(
-        @AuthenticationPrincipal memberToken: Jwt,
-        @Payload request: ReactMessageRequest) : Mono<Void> {
-        val memberId = UUID.fromString(memberToken.subject)
-        return mono { familyMessageService.reactMessage(memberId, request) }.then()
+    suspend fun reactMessage(
+        @Payload request: ReactMessageRequest
+    ) {
+        val memberId = UUID.fromString(getFuckingToken().subject)
+        familyMessageService.reactMessage(memberId, request)
     }
 
 //    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'DELETE_MESSAGE')")
     @MessageMapping("chat.delete")
-    fun deleteMessage(
-        @AuthenticationPrincipal memberToken: Jwt,
-        @Payload request: DeleteMessageRequest) : Mono<Void> {
-        val memberId = UUID.fromString(memberToken.subject)
-        return mono{ familyMessageService.deleteMessage(memberId, request) }.then()
+    suspend fun deleteMessage(
+        @Payload request: DeleteMessageRequest
+    ) {
+        val memberId = UUID.fromString(getFuckingToken().subject)
+        familyMessageService.deleteMessage(memberId, request)
     }
 
-
-//    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'SHOW_MESSAGE')")
+//    @PreAuthorize("hasAuthority('USER') && hasPermission(#familyId, 'family', 'SHOW_MESSAGE')")
     @MessageMapping("messages.{familyId}")
-    fun findAllMessagesByFamily(
-//        @AuthenticationPrincipal memberToken: Jwt,
+    suspend fun findAllMessagesByFamily(
         @DestinationVariable familyId: UUID,
         @Payload request: MessageRequest
-    ): Mono<List<MessageDto>> {
+    ): List<MessageDto> {
         val pageable = PageRequest.of(request.page, request.size)
-        val result = mono {familyMessageService.findAllMessagesByFamily(
+        return familyMessageService.findAllMessagesByFamily(
             familyId.toString(),
             request.startDate,
             request.endDate,
             pageable
         )
-        }
-        return result
     }
 }
