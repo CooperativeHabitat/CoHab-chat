@@ -6,6 +6,7 @@ import java.time.Instant
 import java.util.UUID
 
 data class MessageDto(
+    val memberId: String,
     val messageId: String,
     val content: String,
     val replyToId: String?,

@@ -104,11 +104,11 @@ class MessageService(
 
     suspend fun findAllMessagesByFamily(
         familyId: String,
-        startDate: Instant?,
-        endDate: Instant?,
+        startDate: Instant,
+        endDate: Instant,
         pageable: Pageable
     ): List<MessageDto> {
-        val messages = messageRepository.findByFamilyIdAndSentAtBetween(familyId, startDate, endDate, pageable)
+        val messages = messageRepository.findByFamilyIdAndSentAtBetweenOrderBySentAtDesc(familyId, startDate, endDate, pageable)
             .collectList().awaitSingle()
         val messageDtos = messages.map { messageMapper.toDto(it) }
         return messageDtos

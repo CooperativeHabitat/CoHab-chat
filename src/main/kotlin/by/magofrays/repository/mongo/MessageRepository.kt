@@ -10,18 +10,10 @@ import java.time.Instant
 
 @Repository
 interface MessageRepository : ReactiveMongoRepository<Message, String> {
-
-    @Query(
-        "{ 'familyId': ?0, " +
-                "\$and: [ " +
-                "?#{ [1] == null ? { \$expr: true } : { 'sentAt': { \$gte: [1] } } }, " +
-                "?#{ [2] == null ? { \$expr: true } : { 'sentAt': { \$lte: [2] } } } " +
-                "] }"
-    )
-    fun findByFamilyIdAndSentAtBetween(
+    fun findByFamilyIdAndSentAtBetweenOrderBySentAtDesc(
         familyId: String,
-        startDate: Instant?,
-        endDate: Instant?,
+        startDate: Instant,
+        endDate: Instant,
         pageable: Pageable
     ): Flux<Message>
 }
