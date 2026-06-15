@@ -11,6 +11,7 @@ import org.springframework.messaging.handler.annotation.DestinationVariable
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Controller
@@ -23,67 +24,65 @@ class FamilyRSocketController(
     val familyMessageService: MessageService,
 ) {
 
-    suspend fun getFuckingToken(): Jwt {
+    suspend fun getMemberToken(): Jwt {
         return ReactiveSecurityContextHolder.getContext()
             .map { it.authentication?.principal as Jwt }
             .awaitSingle()
     }
 
-//    @PreAuthorize("hasAuthority('USER')")
+
     @MessageMapping("chat.{familyId}.stream")
     suspend fun connectFamilyChat(
         @DestinationVariable familyId: String
     ): Flux<ChatResponse> {
-        val memberId = UUID.fromString(getFuckingToken().subject)
-        return familyMessageService.connectFamilyChatStream(memberId, familyId)
+        return familyMessageService.connectFamilyChatStream(familyId)
     }
 
-//    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'CREATE_MESSAGE')")
+
     @MessageMapping("chat.send")
     suspend fun sendNewMessage(
         @Payload request: CreateMessageRequest
+
     ) {
-        val memberId = UUID.fromString(getFuckingToken().subject)
+        val memberId = UUID.fromString(getMemberToken().subject)
         familyMessageService.createMessage(memberId, request)
     }
 
-//    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'EDIT_MESSAGE')")
+
     @MessageMapping("chat.edit")
     suspend fun editMessage(
         @Payload request: EditMessageRequest
     ) {
-        val memberId = UUID.fromString(getFuckingToken().subject)
+        val memberId = UUID.fromString(getMemberToken().subject)
         familyMessageService.editMessage(memberId, request)
     }
 
-//    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'SHOW_MESSAGE')")
     @MessageMapping("chat.view")
     suspend fun viewMessage(
         @Payload request: ViewMessageRequest
     ) {
-        val memberId = UUID.fromString(getFuckingToken().subject)
+        val memberId = UUID.fromString(getMemberToken().subject)
         familyMessageService.viewMessage(memberId, request)
     }
 
-    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'REACT_MESSAGE')")
+
     @MessageMapping("chat.react")
     suspend fun reactMessage(
         @Payload request: ReactMessageRequest
     ) {
-        val memberId = UUID.fromString(getFuckingToken().subject)
+        val memberId = UUID.fromString(getMemberToken().subject)
         familyMessageService.reactMessage(memberId, request)
     }
 
-//    @PreAuthorize("hasAuthority('USER') && hasPermission(#request.familyId, 'family', 'DELETE_MESSAGE')")
     @MessageMapping("chat.delete")
     suspend fun deleteMessage(
+        @AuthenticationPrincipal token: Jwt,
         @Payload request: DeleteMessageRequest
     ) {
-        val memberId = UUID.fromString(getFuckingToken().subject)
-        familyMessageService.deleteMessage(memberId, request)
+        val memberId = UUID.fromString(getMemberToken().subject)
+        return familyMessageService.deleteMessage(memberId, request)
     }
 
-//    @PreAuthorize("hasAuthority('USER') && hasPermission(#familyId, 'family', 'SHOW_MESSAGE')")
     @MessageMapping("messages.{familyId}")
     suspend fun findAllMessagesByFamily(
         @DestinationVariable familyId: UUID,
@@ -91,10 +90,10 @@ class FamilyRSocketController(
     ): List<MessageDto> {
         val pageable = PageRequest.of(request.page, request.size)
         return familyMessageService.findAllMessagesByFamily(
-            familyId.toString(),
-            request.startDate,
-            request.endDate,
-            pageable
-        )
+                familyId.toString(),
+                request.startDate,
+                request.endDate,
+                pageable
+            )
     }
 }

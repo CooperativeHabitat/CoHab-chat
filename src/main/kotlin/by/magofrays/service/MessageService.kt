@@ -7,16 +7,14 @@ import by.magofrays.entity.MessageRead
 import by.magofrays.entity.Reaction
 import by.magofrays.mapper.MessageMapper
 import by.magofrays.repository.mongo.MessageRepository
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Pageable
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.data.redis.listener.ChannelTopic
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 import java.time.Instant
 import java.util.*
 
@@ -29,7 +27,7 @@ class MessageService(
     private val log = LoggerFactory.getLogger(MessageService::class.java)
 
 
-    fun connectFamilyChatStream(memberId: UUID, familyId: String): Flux<ChatResponse> {
+    fun connectFamilyChatStream(familyId: String): Flux<ChatResponse> {
         val channel = "family:chat:$familyId"
         val subscription = chatChannel
             .listenTo(ChannelTopic.of(channel))
@@ -71,7 +69,7 @@ class MessageService(
         val chatResponse = messageMapper.toChatResponse(messageEntity)
         chatResponse.operationType = ChatResponse.ChatOperationType.DELETE_MESSAGE
         log.info("Sending deleted message {} to family {}", chatResponse, request.familyId)
-        messageRepository.delete(messageEntity).awaitSingle()
+        messageRepository.delete(messageEntity).awaitSingleOrNull()
         chatChannel.convertAndSend(channel, chatResponse).awaitSingle()
     }
 
