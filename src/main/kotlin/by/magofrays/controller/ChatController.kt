@@ -10,7 +10,6 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.messaging.handler.annotation.DestinationVariable
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.Payload
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
@@ -19,8 +18,8 @@ import reactor.core.publisher.Flux
 import java.util.*
 
 @Controller
-@MessageMapping("api.family")
-class FamilyRSocketController(
+@MessageMapping("api.family.chat")
+class ChatController(
     val familyMessageService: MessageService,
 ) {
 
@@ -31,7 +30,7 @@ class FamilyRSocketController(
     }
 
 
-    @MessageMapping("chat.{familyId}.stream")
+    @MessageMapping("{familyId}.stream")
     suspend fun connectFamilyChat(
         @DestinationVariable familyId: String
     ): Flux<ChatResponse> {
@@ -39,7 +38,7 @@ class FamilyRSocketController(
     }
 
 
-    @MessageMapping("chat.send")
+    @MessageMapping("send")
     suspend fun sendNewMessage(
         @Payload request: CreateMessageRequest
 
@@ -49,7 +48,7 @@ class FamilyRSocketController(
     }
 
 
-    @MessageMapping("chat.edit")
+    @MessageMapping("edit")
     suspend fun editMessage(
         @Payload request: EditMessageRequest
     ) {
@@ -57,7 +56,7 @@ class FamilyRSocketController(
         familyMessageService.editMessage(memberId, request)
     }
 
-    @MessageMapping("chat.view")
+    @MessageMapping("view")
     suspend fun viewMessage(
         @Payload request: ViewMessageRequest
     ) {
@@ -66,7 +65,7 @@ class FamilyRSocketController(
     }
 
 
-    @MessageMapping("chat.react")
+    @MessageMapping("react")
     suspend fun reactMessage(
         @Payload request: ReactMessageRequest
     ) {
@@ -74,7 +73,7 @@ class FamilyRSocketController(
         familyMessageService.reactMessage(memberId, request)
     }
 
-    @MessageMapping("chat.delete")
+    @MessageMapping("delete")
     suspend fun deleteMessage(
         @AuthenticationPrincipal token: Jwt,
         @Payload request: DeleteMessageRequest
@@ -83,7 +82,7 @@ class FamilyRSocketController(
         return familyMessageService.deleteMessage(memberId, request)
     }
 
-    @MessageMapping("messages.{familyId}")
+    @MessageMapping("{familyId}.messages")
     suspend fun findAllMessagesByFamily(
         @DestinationVariable familyId: UUID,
         @Payload request: MessageRequest

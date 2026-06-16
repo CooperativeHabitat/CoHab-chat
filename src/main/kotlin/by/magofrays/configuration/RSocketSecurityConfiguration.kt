@@ -41,13 +41,15 @@ class RSocketSecurityConfiguration(
             .authorizePayload { authz ->
                 authz
                     .setup().permitAll()
-
+                    .route("api.notification.notifications")
+                    .hasAuthority("USER")
+                    .route("api.notification.stream")
+                    .hasAuthority("USER")
                     .route("api.family.chat.{familyId}.stream")
                     .access { authentication, context ->
                         val familyId = context.variables["familyId"] as String
                         mono{hasPermission(authentication, UUID.fromString(familyId), "SHOW_CHAT")}
                     }
-
                     .route("api.family.chat.send")
                     .access { authentication, context ->
                         val request = parsePayload<CreateMessageRequest>(context)

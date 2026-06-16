@@ -1,25 +1,26 @@
 package by.magofrays.service
 
 import by.magofrays.dto.NotificationDto
+import by.magofrays.mapper.NotificationMapper
 import by.magofrays.repository.NotificationRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.reactor.awaitSingle
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 import reactor.core.publisher.Sinks
-import tools.jackson.databind.ObjectMapper
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
 @Service
 class NotificationService(
     private val notificationRepository: NotificationRepository,
-    private val objectMapper: ObjectMapper
+    private val notificationMapper: NotificationMapper
 )
 {
     class MemberSink(
@@ -65,11 +66,18 @@ class NotificationService(
         memberMap[memberId]?.sink?.tryEmitNext(notification)
     }
 
-    fun findAllNotificationByMember(memberId: UUID, startDate: Instant?, endDate: Instant?, pageable: Pageable) : Mono<Page<NotificationDto>> {
-        return notificationRepository.findByRecipientAndCreatedAtBetween(memberId, startDate, endDate, pageable)
-            .map { notification -> objectMapper.convertValue(notification, NotificationDto::class.java) }
+    suspend fun findAllNotificationByMember(memberId: UUID, startDate: Instant?,
+                                            endDate: Instant?, pageable: Pageable) : Page<NotificationDto> {
+        val notifications = notificationRepository
+            .findByRecipientAndCreatedAtBetween(memberId, startDate, endDate, pageable)
             .collectList()
-            .zipWith(notificationRepository.countByRecipientAndCreatedAtBetween(memberId, startDate, endDate))
-            .map{p -> PageImpl(p.getT1(), pageable, p.getT2()) }
+            .awaitSingle()
+
+        val count = notificationRepository
+            .countByRecipientAndCreatedAtBetween(memberId, startDate, endDate)
+            .awaitSingle()
+
+        val notificationDtos = notifications.map { notificationMapper.toDto(it) }
+        return PageImpl(notificationDtos, pageable, count)
     }
 }
