@@ -19,13 +19,13 @@ spring:
       timeout: ${REDIS_TIMEOUT:60000}
       host: ${REDIS_CONTAINER_NAME:localhost}
       port: ${REDIS_PORT:6379}
-    mongodb:
-      host: ${MONGO_CONTAINER_NAME:localhost}
-      database: ${MONGO_DB:cohab_chat}
-      port: ${MONGO_PORT:27017}
-      username: ${MONGO_USER:magofrays}
-      password: ${MONGO_PASSWORD:labubu}
-      auto-index-creation: true
+  mongodb:
+    host: ${MONGO_CONTAINER_NAME:localhost}
+    database: ${MONGO_DB:cohab_chat}
+    port: ${MONGO_PORT:27017}
+    username: ${MONGO_USER:magofrays}
+    password: ${MONGO_PASSWORD:labubu}
+    auto-index-creation: true
 
   rsocket:
     server:
