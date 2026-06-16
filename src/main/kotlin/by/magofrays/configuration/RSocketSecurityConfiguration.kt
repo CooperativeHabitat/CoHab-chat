@@ -6,6 +6,7 @@ import by.magofrays.dto.client.EditMessageRequest
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.mono
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -27,8 +28,9 @@ import java.util.*
 @Configuration
 @EnableRSocketSecurity
 class RSocketSecurityConfiguration(
-    val reactiveRedisTemplate: ReactiveRedisTemplate<String, List<String>>
+    val reactiveRedisTemplate: ReactiveRedisTemplate<String, List<String>>,
 ) {
+    private val log = LoggerFactory.getLogger(RSocketSecurityConfiguration::class.java)
 
     @Value("\${spring.security.jwt.public-key}")
     lateinit var publicKey: RSAPublicKey
@@ -98,6 +100,7 @@ class RSocketSecurityConfiguration(
             val accesses = getAccessesFromCache(key)
             return AuthorizationDecision(accesses.any { it == permission })
         } catch (ex: Exception) {
+            log.info("Exception occurred during checking accesses: {}", ex.message)
             return AuthorizationDecision(false)
         }
 
