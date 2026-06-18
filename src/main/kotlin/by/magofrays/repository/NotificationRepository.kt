@@ -12,16 +12,17 @@ import java.util.*
 @Repository
 interface NotificationRepository : R2dbcRepository<Notification, UUID> {
 
-    fun findByRecipientAndCreatedAtBetween(
+    fun findByRecipientAndCreatedAtBetweenOrderByCreatedAtDesc(
         recipient: UUID,
-        startDate: Instant?,
-        endDate: Instant?,
-        pageable: Pageable
+        startDate: Instant,
+        endDate: Instant,
+        limit: Int,
+        offset: Long
     ): Flux<Notification>
 
     fun countByRecipientAndCreatedAtBetween(
         recipient: UUID,
-        startDate: Instant?,
-        endDate: Instant?
+        startDate: Instant,
+        endDate: Instant
     ): Mono<Long>
 }

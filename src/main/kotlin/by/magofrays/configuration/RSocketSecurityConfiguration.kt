@@ -42,9 +42,11 @@ class RSocketSecurityConfiguration(
                 authz
                     .setup().permitAll()
                     .route("api.notification.notifications")
-                    .hasAuthority("USER")
+                    .permitAll()
+//                    .hasAuthority("USER")
                     .route("api.notification.stream")
-                    .hasAuthority("USER")
+                    .permitAll()
+//                    .hasAuthority("USER")
                     .route("api.family.chat.{familyId}.stream")
                     .access { authentication, context ->
                         val familyId = context.variables["familyId"] as String

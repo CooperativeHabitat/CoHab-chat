@@ -75,7 +75,6 @@ class ChatController(
 
     @MessageMapping("delete")
     suspend fun deleteMessage(
-        @AuthenticationPrincipal token: Jwt,
         @Payload request: DeleteMessageRequest
     ) {
         val memberId = UUID.fromString(getMemberToken().subject)

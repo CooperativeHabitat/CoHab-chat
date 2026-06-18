@@ -3,7 +3,6 @@ package by.magofrays.service
 import by.magofrays.dto.NotificationDto
 import by.magofrays.mapper.NotificationMapper
 import by.magofrays.repository.NotificationRepository
-import kotlinx.coroutines.async
 import kotlinx.coroutines.reactor.awaitSingle
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
@@ -21,8 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class NotificationService(
     private val notificationRepository: NotificationRepository,
     private val notificationMapper: NotificationMapper
-)
-{
+) {
     class MemberSink(
         val sink: Sinks.Many<NotificationDto>,
         val subscribersCount: AtomicInteger
@@ -31,14 +29,15 @@ class NotificationService(
     private val memberMap = ConcurrentHashMap<UUID, MemberSink>()
     private val log = LoggerFactory.getLogger(NotificationService::class.java)
 
-    fun connectNotifications(memberId: UUID) : Flux<NotificationDto> {
+    fun connectNotifications(memberId: UUID): Flux<NotificationDto> {
 
         memberMap.computeIfAbsent(memberId) {
             log.info("Creating sink for $memberId")
             MemberSink(
-            sink = Sinks.many().multicast().onBackpressureBuffer(1, false),
-            subscribersCount = AtomicInteger(0)
-        ) }
+                sink = Sinks.many().multicast().onBackpressureBuffer(1, false),
+                subscribersCount = AtomicInteger(0)
+            )
+        }
         log.info("Connecting client to $memberId sink")
         val memberSink = memberMap[memberId]
         memberSink!!.subscribersCount.incrementAndGet()
@@ -46,30 +45,38 @@ class NotificationService(
             .doOnCancel {
                 log.info("One of clients is unsubscribed from $memberId sink")
                 val remaining = memberSink.subscribersCount.decrementAndGet()
-                if(remaining < 1){
+                if (remaining < 1) {
                     log.info("Removing sink for $memberId")
                     memberMap.remove(memberId)
                     memberSink.sink.tryEmitComplete()
                     log.info("Removed sink for $memberId")
                 }
             }
-            .doOnError {
-                error -> log.info("Error occurred in sink: ${error.message}")
+            .doOnError { error ->
+                log.info("Error occurred in sink: ${error.message}")
             }
     }
 
     fun sendNotification(memberId: UUID, notification: NotificationDto) {
-        if(!memberMap.containsKey(memberId)){
+        if (!memberMap.containsKey(memberId)) {
             return
         }
         log.info("Sending notification to $memberId sink")
         memberMap[memberId]?.sink?.tryEmitNext(notification)
     }
 
-    suspend fun findAllNotificationByMember(memberId: UUID, startDate: Instant?,
-                                            endDate: Instant?, pageable: Pageable) : Page<NotificationDto> {
+    suspend fun findAllNotificationByMember(
+        memberId: UUID, startDate: Instant,
+        endDate: Instant, pageable: Pageable
+    ): Page<NotificationDto> {
         val notifications = notificationRepository
-            .findByRecipientAndCreatedAtBetween(memberId, startDate, endDate, pageable)
+            .findByRecipientAndCreatedAtBetweenOrderByCreatedAtDesc(
+                memberId,
+                startDate,
+                endDate,
+                pageable.pageSize,
+                pageable.offset
+            )
             .collectList()
             .awaitSingle()
 

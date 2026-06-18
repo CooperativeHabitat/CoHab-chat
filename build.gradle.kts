@@ -23,6 +23,7 @@ repositories {
 
 dependencies {
     // Spring Boot
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-rsocket")
     implementation("org.springframework.security:spring-security-rsocket")
 
@@ -35,7 +36,6 @@ dependencies {
     implementation("org.springframework.kafka:spring-kafka")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -45,9 +45,6 @@ dependencies {
     // MapStruct
     implementation("org.mapstruct:mapstruct:1.6.3")
     kapt("org.mapstruct:mapstruct-processor:1.6.3")
-
-    // OpenAPI
-    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.0.3")
 
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")

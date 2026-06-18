@@ -106,7 +106,8 @@ class MessageService(
         endDate: Instant,
         pageable: Pageable
     ): List<MessageDto> {
-        val messages = messageRepository.findByFamilyIdAndSentAtBetweenOrderBySentAtDesc(familyId, startDate, endDate, pageable)
+        val messages = messageRepository
+            .findByFamilyIdAndSentAtBetweenOrderBySentAtDesc(familyId, startDate, endDate, pageable)
             .collectList().awaitSingle()
         val messageDtos = messages.map { messageMapper.toDto(it) }
         return messageDtos
