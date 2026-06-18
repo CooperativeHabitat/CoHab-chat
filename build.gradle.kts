@@ -1,12 +1,11 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "4.0.6"
+    id("org.springframework.boot") version "4.1.0"
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("jvm") version "2.2.21"
     kotlin("kapt") version "2.2.21"
     kotlin("plugin.spring") version "2.2.21"
-    kotlin("plugin.jpa") version "2.2.21"
 }
 
 group = "by.magofrays"
@@ -25,6 +24,7 @@ dependencies {
     // Spring Boot
     implementation("org.springframework.boot:spring-boot-starter-rsocket")
     implementation("org.springframework.security:spring-security-rsocket")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
 
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
     implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
@@ -45,9 +45,6 @@ dependencies {
     // MapStruct
     implementation("org.mapstruct:mapstruct:1.6.3")
     kapt("org.mapstruct:mapstruct-processor:1.6.3")
-
-    // OpenAPI
-    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.0.3")
 
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
