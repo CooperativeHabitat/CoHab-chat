@@ -140,7 +140,7 @@ class SecurityConfiguration(
         val key = "family:accesses::$familyId:$memberId"
         try {
             val accesses = getAccessesFromCache(key)
-            return AuthorizationDecision(accesses.any { it == permission })
+            return AuthorizationDecision(accesses.any { it == permission } && jwt.getClaim<List<String>>("scope")?.firstOrNull().equals( C"USER"))
         } catch (ex: Exception) {
             log.info("Exception occurred during checking accesses: {}", ex.message)
             return AuthorizationDecision(false)
