@@ -47,8 +47,31 @@ class MessageService(
         val savedMessage = messageRepository.save(messageEntity).awaitSingle()
         val chatResponse = messageMapper.toChatResponse(savedMessage)
         chatResponse.operationType = ChatResponse.ChatOperationType.NEW_MESSAGE
+        if (request.replyToId != null) {
+            val original = messageRepository.findById(request.replyToId).awaitSingleOrNull()
+            if (original != null) {
+                chatResponse.replyTo = messageMapper.toDto(original)
+            }
+        }
         log.info("Sending new message {} to family {}", chatResponse, request.familyId)
         chatChannel.convertAndSend(channel, chatResponse).awaitSingle()
+    }
+
+    suspend fun sendTyping(memberId: UUID, familyId: String) {
+        val channel = "family:chat:$familyId"
+        val typingEvent = ChatResponse(
+            familyId = familyId,
+            memberId = memberId.toString(),
+            messageId = "",
+            replyToId = null,
+            content = "",
+            reactions = null,
+            reads = null,
+            operationType = ChatResponse.ChatOperationType.TYPING,
+            sentAt = Instant.now(),
+            updatedAt = Instant.now()
+        )
+        chatChannel.convertAndSend(channel, typingEvent).awaitSingle()
     }
 
     suspend fun editMessage(memberId: UUID, request: EditMessageRequest) {

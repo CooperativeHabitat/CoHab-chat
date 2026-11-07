@@ -4,6 +4,6 @@ import java.util.UUID
 
 data class CreateMessageRequest(
     val content: String,
-    val replyToId: UUID? = null,
+    val replyToId: String? = null,
     val familyId: UUID,
 )

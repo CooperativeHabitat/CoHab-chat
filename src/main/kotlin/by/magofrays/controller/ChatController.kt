@@ -48,6 +48,15 @@ class ChatController(
     }
 
 
+    @MessageMapping("typing")
+    suspend fun sendTyping(
+        @Payload request: TypingRequest
+    ) {
+        val memberId = UUID.fromString(getMemberToken().subject)
+        familyMessageService.sendTyping(memberId, request.familyId.toString())
+    }
+
+
     @MessageMapping("edit")
     suspend fun editMessage(
         @Payload request: EditMessageRequest
